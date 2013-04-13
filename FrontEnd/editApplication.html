@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <title>Gamification_engine</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- Le styles -->
+    <link href="js/bootstrap.css" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+      }
+    </style>
+    <link href="js/bootstrap-responsive.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="../assets/js/html5shiv.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="brand" href="index.html">Gamification Engine</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              <li class="active"><a href="index.html">Home</a></li>
+             </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <h1>Formulaire d'application</h1>
+      <p>en faisant $("#id"), je peux changer la valeur d'un champ, je peux donc modifier le formulaire en fonction d'un paramètres éis dans l'URL</p>
+	<form>
+		<div class=idApplication></div>
+		<p><label>Nom :</label><input type="text" id="name" /></p>
+		<p><label>Description :</label><textarea rows=3 id="description"></textarea></p>
+		<p><label>apiKey :</label><input type="text" id="apiKey" /></p>
+		<p><label>apiSecret :</label><input type="text" id="apiSecret" /></p>
+		<button onclick="alert('Envoi des données !')"> Enregistrement </button>
+	</form>
+
+
+    </div> <!-- /container -->
+
+
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="js/jquery.js"></script>
+    <script src="js/bootstrap-transition.js"></script>
+    <script src="js/bootstrap-alert.js"></script>
+    <script src="js/bootstrap-modal.js"></script>
+    <script src="js/bootstrap-dropdown.js"></script>
+    <script src="js/bootstrap-scrollspy.js"></script>
+    <script src="js/bootstrap-tab.js"></script>
+    <script src="js/bootstrap-tooltip.js"></script>
+    <script src="js/bootstrap-popover.js"></script>
+    <script src="js/bootstrap-button.js"></script>
+    <script src="js/bootstrap-collapse.js"></script>
+    <script src="js/bootstrap-carousel.js"></script>
+    <script src="js/bootstrap-typeahead.js"></script>
+    <script src="js/addon.js"></script>
+    <script type="text/javascript">
+	if($.urlParam('id') != null)
+	{
+		$("#name").val("toto");
+		$("#description").val("Lorem Ipsum");
+		$("#apiKey").val("1234");
+		$("#apiSecret").val("123456");
+		$(".idApplicaiton").append(document.createTextNode("<p>id : 1</p>"))
+	}
+    </script>
+
+  
+
+</body></html>
