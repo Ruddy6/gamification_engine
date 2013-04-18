@@ -1,124 +1,149 @@
-/**
- * New node file
- */
+var mongoose = require('mongoose');
 var mongo = require('mongodb');
+require('./../modeles/badgeSchema');
 
-var ObjectId = require('mongodb').ObjectID;
+var badgeModel = mongoose.model('badge');
 
-var Server = mongo.Server,
-        Db = mongo.Db,
-        BSON = mongo.BSONPure;
-
-var server = new Server('localhost', 27017, {auto_reconnect: true});
-db = new Db('gamificationdb', server);
-
-db.open(function(err, db) {
-    //populateDB();
-    if (!err) {
-        console.log("Connected to 'gamificationdb' database");
-        db.collection('applications', {safe: true}, function(err, collection) {
-            if (err) {
-                console.log("The 'applications' collection doesn't exist. Creating it with sample data...");
-                populateDB();
-            }
-        });
-    }
-});
-
-exports.getAllBadges = function(req, res) {
-    db.collection('badges', function(err, collection) {
-        collection.find({applications: new ObjectId(req.params.app_id)}).toArray(function(err, items) {
-            res.send(items);
-        });
-    });
-};
-
-exports.getNbLevel = function(req, res) {
+exports.addBadge = function(req, res) {
     var application_id = req.params.app_id;
-    db.collection('badges', function(err, collection) {
-        collection.find({applications: new ObjectId(application_id)}).toArray(function(err, items) {
-            var levels = new Array();
-            var nbLevel = new Array();
-
-            for (var i = 0; i < items.length; i++) {
-                var level = items[i]['level'];
-                if (!valueInArray(levels, level)) {
-                    levels.push(level);
-                }
-            }
-            nbLevel.push(levels.length);
-            res.send(nbLevel);
-        });
+    var badge = new badgeModel({
+        description: 'troisime badge ajouté',
+        name: 'TroisièmeBadge',
+        picture: 'troisieme.jpg',
+        level: 2,
+        application: application_id
     });
-};
-
-valueInArray = function(tableau, valeur) {
-    var estDansTableau = false;
-    if (tableau.length != 0) {
-        for (var i = 0; i < tableau.length; i++) {
-            if(tableau[i] == valeur){
-                estDansTableau = true;
-            }
+    badge.save(function(err) {
+        if (err) {
+            return handleError(err);
+        } else {
+            res.send({
+                "code": "200"
+            });
         }
-    }
-    return estDansTableau;
+    });
+
+//    applicationModel.findByIdAndUpdate(application_id, {$addToSet: {badges: badge}},
+//    function(err, model) {
+//        res.send({
+//            "code": "200"
+//        });
+//    }
+//    );
 };
 
 exports.getBadgeById = function(req, res) {
     var badge_id = req.params.badge_id;
-    console.log("badge id : " + badge_id);
-    db.collection('badges', function(err, collection) {
-        collection.findOne({_id: new BSON.ObjectID(badge_id)}, function(err, item) {
-            res.send(item);
-        });
+    badgeModel.findById(badge_id, function(err, badge) {
+        if (err) {
+            throw err;
+        } else {
+            res.send(badge);
+        }
+    });
+};
+
+exports.getAllBadgesApplication = function(req, res) {
+    var application_id = req.params.app_id;
+    badgeModel.find({application: application_id}, function(err, badge) {
+        if (err) {
+            throw err;
+        } else {
+            res.send(badge);
+        }
     });
 };
 
 exports.getBagdesByLevel = function(req, res) {
     var application_id = req.params.app_id;
     var level = req.params.level;
-    console.log(application_id);
-    console.log(level);
-    db.collection('badges', function(err, collection) {
-        collection.find({applications: new ObjectId(application_id)}).toArray(function(err, items) {
-            var badges = new Array();
+    badgeModel.find({application: application_id, level: level}, function(err, badge) {
+        if (err) {
+            throw err;
+        } else {
+            res.send(badge);
+        }
+    });
+};
 
-            for (var i = 0; i < items.length; i++) {
-                if (items[i]['level'] == level) {
-                    badges.push(items[i]);
-                }
-            }
+exports.updateBadge = function(req, res) {
+    var id = req.params.badge_id;
+
+    badgeModel.findByIdAndUpdate(id, {$set: {name: 'Un badge à jour'}}, function(err, badge) {
+        if (err) {
+            return handleError(err);
+        } else {
+            res.send({
+                "code": "200"
+            });
+        }
+    });
+};
+
+exports.deleteBadge = function(req, res) {
+    var id = req.params.badge_id;
+    badgeModel.remove({_id: id}, function(err) {
+        if (err) {
+            throw err;
+        } else {
+            res.send({
+                "code": "200"
+            });
+        }
+    });
+};
+
+exports.addBadgeToPlayer = function(req, res) {
+    var badge_id = req.params.badge_id;
+    var player_id = req.params.player_id;
+    badgeModel.findByIdAndUpdate(badge_id, {$addToSet: {players: player_id}},
+    function(err, model) {
+        res.send({
+            "code": "200"
+        });
+    }
+    );
+};
+
+exports.getBadgesOfPlayer = function(req, res) {
+    var application_id = req.params.app_id;
+    var player_id = req.params.player_id;
+    badgeModel.find({application: application_id, players: player_id}, function(err, badges) {
+        if (err) {
+            throw err;
+        } else {
             res.send(badges);
-        });
+        }
     });
 };
 
-var populateDB = function() {
-
-    var badges = [
-        {
-            description: "Super badge de malade",
-            name: "MyBadge",
-            picture: "mybadgePicture.png",
-            level: 10000,
-            applications: [
-                new ObjectId("515c31f9c4f0145c0d000001"),
-                new ObjectId("515c31f9c4f0145c0d000002")
-            ]
-        },
-        {
-            description: "The big boss badge",
-            name: "BigBoss",
-            picture: "qwertz.png",
-            level: 10000,
-            applications: [
-                new ObjectId("515c31f9c4f0145c0d000002")
-            ]
-        }];
-
-    db.collection('badges', function(err, collection) {
-        collection.insert(badges, {safe: true}, function(err, result) {
-        });
-    });
-
-};
+//exports.getNbLevel = function(req, res) {
+//    var application_id = req.params.app_id;
+//    db.collection('badges', function(err, collection) {
+//        collection.find({applications: new ObjectId(application_id)}).toArray(function(err, items) {
+//            var levels = new Array();
+//            var nbLevel = new Array();
+//
+//            for (var i = 0; i < items.length; i++) {
+//                var level = items[i]['level'];
+//                if (!valueInArray(levels, level)) {
+//                    levels.push(level);
+//                }
+//            }
+//            nbLevel.push(levels.length);
+//            res.send(nbLevel);
+//        });
+//    });
+//};
+//
+//valueInArray = function(tableau, valeur) {
+//    var estDansTableau = false;
+//    if (tableau.length != 0) {
+//        for (var i = 0; i < tableau.length; i++) {
+//            if(tableau[i] == valeur){
+//                estDansTableau = true;
+//            }
+//        }
+//    }
+//    return estDansTableau;
+//};

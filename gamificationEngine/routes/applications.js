@@ -1,122 +1,102 @@
+/* 
+ * Tutorial Mongoose http://www.atinux.fr/2011/10/15/tutoriel-sur-mongoose-mongodb-avec-node-js/
+ */
+
+var mongoose = require('mongoose');
 var mongo = require('mongodb');
+require('./../modeles/applicationSchema');
+require('./../modeles/badgeSchema');
+require('./../modeles/eventSchema');
+require('./../modeles/leaderboardSchema');
+require('./../modeles/playerSchema');
 
-var ObjectId = require('mongodb').ObjectID;
-
-var Server = mongo.Server,
-        Db = mongo.Db,
-        BSON = mongo.BSONPure;
-
-var server = new Server('localhost', 27017, {auto_reconnect: true});
-db = new Db('gamificationdb', server);
-
-db.open(function(err, db) {
-    //populateDB();
-    if (!err) {
-        console.log("Connected to 'gamificationdb' database");
-        db.collection('applications', {safe: true}, function(err, collection) {
-            if (err) {
-                console.log("The 'applications' collection doesn't exist. Creating it with sample data...");
-                populateDB();
-            }
-        });
-    }
-});
-
-exports.findById = function(req, res) {
-    var id = req.params.id;
-    console.log('Retrieving application: ' + id);
-    db.collection('applications', function(err, collection) {
-        collection.findOne({'_id': new BSON.ObjectID(id)}, function(err, item) {
-            res.send(item);
-        });
-    });
-};
-
-exports.findAll = function(req, res) {
-    db.collection('applications', function(err, collection) {
-        collection.find().toArray(function(err, items) {
-            res.send(items);
-        });
-    });
-};
+// Récupération du modèle pour d'application
+var applicationModel = mongoose.model('application');
+var badgeModel = mongoose.model('badge');
+var eventModel = mongoose.model('event');
+var leaderboardModel = mongoose.model('leaderboard');
+var playerModel = mongoose.model('player');
 
 exports.addApplication = function(req, res) {
-    var application = req.body;
-    console.log('Adding application: ' + JSON.stringify(application));
-    db.collection('applications', function(err, collection) {
-        collection.insert(application, {safe: true}, function(err, result) {
-            if (err) {
-                res.send({'error': 'An error has occurred'});
-            } else {
-                console.log('Success: ' + JSON.stringify(result[0]));
-                res.send(result[0]);
-            }
-        });
+    // On créé une instance du Model
+    var uneApplication = new applicationModel({name: 'applicationTest'});
+    uneApplication.description = 'applicaiton de test';
+    uneApplication.apiKey = '32l23lk42'; // peut aussi être effectué à l'instanciation
+    uneApplication.apiSecret = 'test';
+    //uneApplication.badges = [];
+
+    // On le sauvegarde dans MongoDB !
+    uneApplication.save(function(err) {
+        if (err) {
+            throw err;
+        } else {
+            res.send({
+                "code": "200"
+            });
+        }
+    });
+};
+
+exports.getAllApplications = function(req, res) {
+    applicationModel.find(null, function(err, apps) {
+        if (err) {
+            throw err;
+        } else {
+            res.send(apps);
+        }
+    });
+};
+
+exports.getApplicationById = function(req, res) {
+    applicationModel.findById(req.params.id, function(err, application) {
+        if (err) {
+            throw err;
+        } else {
+            res.send(application);
+        }
     });
 };
 
 exports.updateApplication = function(req, res) {
     var id = req.params.id;
-    var application = req.body;
-    console.log('Updating application: ' + id);
-    console.log(JSON.stringify(application));
-    db.collection('applications', function(err, collection) {
-        collection.update({'_id': new BSON.ObjectID(id)}, application, {safe: true}, function(err, result) {
-            if (err) {
-                console.log('Error updating application: ' + err);
-                res.send({'error': 'An error has occurred'});
-            } else {
-                console.log('' + result + ' document(s) updated');
-                res.send(application);
-            }
-        });
+
+    applicationModel.findByIdAndUpdate(id, {$set: {name: 'Un nom à jour'}}, function(err, tank) {
+        if (err) {
+            return handleError(err);
+        } else {
+            res.send({
+                "code": "200"
+            });
+        }
     });
 };
 
 exports.deleteApplication = function(req, res) {
     var id = req.params.id;
-    console.log('Deleting application : ' + id);
-    db.collection('applications', function(err, collection) {
-        collection.remove({'_id': new BSON.ObjectID(id)}, {safe: true}, function(err, result) {
-            if (err) {
-                res.send({'error': 'An error has occurred - ' + err});
-            } else {
-                console.log('' + result + ' document(s) deleted');
-                res.send(req.body);
-            }
-        });
+    applicationModel.remove({_id: id}, function(err) {
+        if (err) {
+            throw err;
+        } else {
+            badgeModel.remove({application: id}).exec(); // suppression de tous les badges liés à cette application!
+            eventModel.remove({application: id}).exec(); // suppression de tous les events liés à cette application!
+            leaderboardModel.remove({application: id}).exec(); // suppression du leaderboard lié à cette application!
+
+            // Récupère tous les player liés à l'application à supprimer et enlève le lien du tableau d'application
+            playerModel.find({applications: id}, function(err, players) {
+                if (err) {
+                    throw err;
+                } else {
+                    var player;
+                    for (var i = 0, l = players.length; i < l; i++) {
+                        player = players[i];
+                        player.applications.remove(id)
+                        player.save(function(err){});
+                    }
+                }
+            });
+            res.send({
+                "code": "200"
+            });
+        }
     });
-};
-
-/*--------------------------------------------------------------------------------------------------------------------*/
-// Populate database with sample data -- Only used once: the first time the application is started.
-// You'd typically not find this code in a real-life app, since the database would already exist.
-var populateDB = function() {
-
-    var applications = [
-        {
-            name: "Application gamification",
-            description: "La gamification c'est top!",
-            apiKey: "2lk34j2",
-            apiSecret: "lolilol",
-            badges: [
-                new ObjectId("515c2c601956eb6419000001")
-            ]
-        },
-        {
-            name: "Application gamification OSF",
-            description: "La gamification OSF c'est top!",
-            apiKey: "32oh23s",
-            apiSecret: "lolilolilol",
-            badges: [
-                new ObjectId("515c2c601956eb6419000001"),
-                new ObjectId("515c2c601956eb6419000002")
-            ]
-        }];
-
-    db.collection('applications', function(err, collection) {
-        collection.insert(applications, {safe: true}, function(err, result) {
-        });
-    });
-
 };

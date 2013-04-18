@@ -1,73 +1,84 @@
-/**
- * New node file
- */
+var mongoose = require('mongoose');
 var mongo = require('mongodb');
+require('./../modeles/eventSchema');
 
-var ObjectId = require('mongodb').ObjectID;
+var eventModel = mongoose.model('event');
 
-var Server = mongo.Server,
-        Db = mongo.Db,
-        BSON = mongo.BSONPure;
+exports.addEvent = function(req, res) {
+    var application_id = req.params.app_id;
+    var event = new eventModel({
+        applicationName: 'Première application',
+        type: 'réclamation',
+        application: application_id
+    });
+    event.save(function(err) {
+        if (err) {
+            return handleError(err);
+        } else {
+            res.send({
+                "code": "200"
+            });
+        }
+    });
+};
 
-var server = new Server('localhost', 27017, {auto_reconnect: true});
-db = new Db('gamificationdb', server);
-
-db.open(function(err, db) {
-    //populateDB();
-    if (!err) {
-        console.log("Connected to 'gamificationdb' database");
-        db.collection('applications', {safe: true}, function(err, collection) {
-            if (err) {
-                console.log("The 'applications' collection doesn't exist. Creating it with sample data...");
-                populateDB();
-            }
-        });
-    }
-});
-
-exports.getAllEvents = function(req, res) {
-    db.collection('events', function(err, collection) {
-        collection.find({applications: new ObjectId(req.params.app_id)}).toArray(function(err, items) {
-            res.send(items);
-        });
+exports.getAllEventsApplication = function(req, res) {
+    var application_id = req.params.app_id;
+    eventModel.find({application: application_id}, function(err, events) {
+        if (err) {
+            throw err;
+        } else {
+            res.send(events);
+        }
     });
 };
 
 exports.getEventById = function(req, res) {
     var event_id = req.params.event_id;
-    db.collection('events', function(err, collection) {
-        collection.findOne({_id: new BSON.ObjectID(event_id)}, function(err, item) {
-            res.send(item);
-        });
+    eventModel.findById(event_id, function(err, event) {
+        if (err) {
+            throw err;
+        } else {
+            res.send(event);
+        }
     });
 };
 
-var populateDB = function() {
+exports.updateEvent = function(req, res) {
+    var id = req.params.event_id;
 
-    var events = [
-        {
-            applicationId : "1",
-            applicationName : "une application",
-            type : "message",
-            timestamp : "234234",
-            applications: [
-                new ObjectId("515c31f9c4f0145c0d000001"),
-                new ObjectId("515c31f9c4f0145c0d000002")
-            ]
-        },
-        {
-            applicationId : "2",
-            applicationName : "une deuxième application",
-            type : "notification",
-            timestamp : "456456456",
-            applications: [
-                new ObjectId("515c31f9c4f0145c0d000001")
-            ]
-        }];
-
-    db.collection('events', function(err, collection) {
-        collection.insert(events, {safe: true}, function(err, result) {
-        });
+    eventModel.findByIdAndUpdate(id, {$set: {type: 'mise à jour'}}, function(err, event) {
+        if (err) {
+            return handleError(err);
+        } else {
+            res.send({
+                "code": "200"
+            });
+        }
     });
+};
 
+exports.deleteEvent = function(req, res) {
+    var id = req.params.event_id;
+    eventModel.remove({_id: id}, function(err) {
+        if (err) {
+            throw err;
+        } else {
+            res.send({
+                "code": "200"
+            });
+        }
+    });
+};
+
+exports.addEventToPlayer = function(req, res) {
+    var event_id = req.params.event_id;
+    var player_id = req.params.player_id;
+    eventModel.findByIdAndUpdate(event_id, {$addToSet: {players: player_id}},
+    function(err, model) {
+        res.send({
+            "code": "200"
+        });
+    }
+    );
 };
