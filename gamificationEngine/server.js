@@ -15,8 +15,8 @@ var express = require('express'),
         application = require('./routes/applications');
         badge = require('./routes/badges');
         event = require('./routes/events');
-        leaderboard = require('./routes/leaderBoard');
         player = require('./routes/players');
+        rule = require('./routes/rules');
 
 var app = express();
 
@@ -34,33 +34,34 @@ app.delete('/applications/:id', application.deleteApplication);
 
 // BADGES
 app.get('/applications/:app_id/badges', badge.getAllBadgesApplication);
-//app.get('/applications/:app_id/badges/nbLevel', badge.getNbLevel);
-app.get('/badges/:badge_id', badge.getBadgeById); // app.get('/applications/:app_id/badges/:badge_id', badge.getBadgeById);
+app.get('/badges/:badge_id', badge.getBadgeById);
 app.get('/applications/:app_id/badges/levels/:level', badge.getBagdesByLevel);
 app.post('/applications/:app_id/badge', badge.addBadge);
-app.post('/badges/:badge_id/player/:player_id', badge.addBadgeToPlayer);
+app.post('/applications/:app_id/badges/:badge_id/player/:player_id', badge.addBadgeToPlayer);
 app.get('/applications/:app_id/badges/player/:player_id', badge.getBadgesOfPlayer);
-app.put('/badges/:badge_id', badge.updateBadge); // pas besoin de connaître son application pour modifier un badge.
-app.delete('/badges/:badge_id', badge.deleteBadge); // pas besoin de connaître son application pour supprimer un badge.
+app.put('/applications/:app_id/badges/:badge_id', badge.updateBadge);
+app.delete('/applications/:app_id/badges/:badge_id', badge.deleteBadge);
 
 // EVENTS
 app.get('/applications/:app_id/events', event.getAllEventsApplication);
-app.get('/events/:event_id', event.getEventById);
-app.post('/applications/:app_id/event', event.addEvent);
-app.post('/events/:event_id/player/:player_id', event.addEventToPlayer);
-app.put('/events/:event_id', event.updateEvent);
-app.delete('/events/:event_id', event.deleteEvent);
-
-// LEADERBOARD
-app.post('/applications/:app_id/leaderboard', leaderboard.addLeaderboard);
-app.get('/applications/:app_id/leaderboard', leaderboard.getLeaderboardApplication);
+app.get('/applications/:app_id/events/:event_id', event.getEventById);
+app.post('/applications/:app_id/players/:player_id/events', event.addEvent);
+app.put('/applications/:app_id/events/:event_id', event.updateEvent);
+app.delete('/applications/:app_id/events/:event_id', event.deleteEvent);
 
 // PLAYERS
 app.post('/applications/:app_id/player', player.addPlayer);
 app.get('/applications/:app_id/players', player.getAllPlayersApplication);
-app.get('/players/:player_id', player.getPlayerById);
-app.put('/players/:player_id', player.updatePlayer);
-app.delete('/players/:player_id', player.deletePlayer);
+app.get('/applications/:app_id/players/:player_id', player.getPlayerById);
+app.put('/applications/:app_id/players/:player_id', player.updatePlayer);
+app.delete('/applications/:app_id/players/:player_id', player.deletePlayer);
+
+// RULES
+app.post('/applications/:app_id/players/:player_id/badges/:badge_id/rule', rule.addRule);
+app.get('/applications/:app_id/rules', rule.getAllRulesApplication);
+app.get('/applications/:app_id/rules/:rule_id', rule.getRuleById);
+app.put('/applications/:app_id/rules/:rule_id', rule.updateRule);
+app.delete('/applications/:app_id/rules/:rule_id', rule.deleteRule);
 
 app.listen(3000);
 console.log('Listening on port 3000...');

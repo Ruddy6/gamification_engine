@@ -13,13 +13,13 @@ var eventModel = mongoose.model('event');
 exports.addPlayer = function(req, res) {
     var application_id = req.params.app_id;
     var player = new playerModel({
-        firstName: 'Test',
-        lastName: 'Test',
+        firstname: 'Test',
+        lastname: 'Test',
         pseudo: 'testtest',
         email: 'test@test.com',
         level: 2,
         nbPoints: 39393,
-        applications: application_id
+        application: application_id
     });
     player.save(function(err) {
         if (err) {
@@ -34,7 +34,7 @@ exports.addPlayer = function(req, res) {
 
 exports.getAllPlayersApplication = function(req, res) {
     var application_id = req.params.app_id;
-    playerModel.find({applications: application_id}, function(err, players) {
+    playerModel.find({application: application_id}, function(err, players) {
         if (err) {
             throw err;
         } else {
@@ -74,6 +74,7 @@ exports.deletePlayer = function(req, res) {
         if (err) {
             throw err;
         } else {
+            eventModel.remove({application: id}).exec(); // suppression de tous les events liés à ce player
             badgeModel.find({players: id}, function(err, badges) {
                 if (err) {
                     throw err;
@@ -83,19 +84,6 @@ exports.deletePlayer = function(req, res) {
                         badge = badges[i];
                         badge.players.remove(id)
                         badge.save(function(err) {
-                        });
-                    }
-                }
-            });
-            eventModel.find({players: id}, function(err, events) {
-                if (err) {
-                    throw err;
-                } else {
-                    var event;
-                    for (var i = 0, l = events.length; i < l; i++) {
-                        event = events[i];
-                        event.players.remove(id)
-                        event.save(function(err) {
                         });
                     }
                 }

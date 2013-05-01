@@ -1,8 +1,10 @@
 var mongoose = require('mongoose');
 var mongo = require('mongodb');
 require('./../modeles/badgeSchema');
+require('./../modeles/ruleSchema');
 
 var badgeModel = mongoose.model('badge');
+var ruleModel = mongoose.model('rule');
 
 exports.addBadge = function(req, res) {
     var application_id = req.params.app_id;
@@ -22,14 +24,6 @@ exports.addBadge = function(req, res) {
             });
         }
     });
-
-//    applicationModel.findByIdAndUpdate(application_id, {$addToSet: {badges: badge}},
-//    function(err, model) {
-//        res.send({
-//            "code": "200"
-//        });
-//    }
-//    );
 };
 
 exports.getBadgeById = function(req, res) {
@@ -86,6 +80,7 @@ exports.deleteBadge = function(req, res) {
         if (err) {
             throw err;
         } else {
+            ruleModel.remove({badge: id}).exec(); // suppression de tous les players liés à cette application!
             res.send({
                 "code": "200"
             });
@@ -98,9 +93,13 @@ exports.addBadgeToPlayer = function(req, res) {
     var player_id = req.params.player_id;
     badgeModel.findByIdAndUpdate(badge_id, {$addToSet: {players: player_id}},
     function(err, model) {
-        res.send({
-            "code": "200"
-        });
+        if (err) {
+            throw err;
+        } else {
+            res.send({
+                "code": "200"
+            });
+        }
     }
     );
 };

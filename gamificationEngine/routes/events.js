@@ -6,10 +6,12 @@ var eventModel = mongoose.model('event');
 
 exports.addEvent = function(req, res) {
     var application_id = req.params.app_id;
+    var player_id = req.params.player_id;
     var event = new eventModel({
-        applicationName: 'Première application',
-        type: 'réclamation',
-        application: application_id
+        type: 1,
+        points: 10,
+        application: application_id,
+        player: player_id
     });
     event.save(function(err) {
         if (err) {
@@ -69,16 +71,4 @@ exports.deleteEvent = function(req, res) {
             });
         }
     });
-};
-
-exports.addEventToPlayer = function(req, res) {
-    var event_id = req.params.event_id;
-    var player_id = req.params.player_id;
-    eventModel.findByIdAndUpdate(event_id, {$addToSet: {players: player_id}},
-    function(err, model) {
-        res.send({
-            "code": "200"
-        });
-    }
-    );
 };
