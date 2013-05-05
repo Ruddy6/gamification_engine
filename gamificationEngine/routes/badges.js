@@ -2,25 +2,38 @@ var mongoose = require('mongoose');
 var mongo = require('mongodb');
 require('./../modeles/badgeSchema');
 require('./../modeles/ruleSchema');
+require('./../modeles/playerSchema');
+require('./../modeles/applicationSchema');
+
+var db = mongoose.connection;
 
 var badgeModel = mongoose.model('badge');
 var ruleModel = mongoose.model('rule');
+var playerModel = mongoose.model('player');
+var applicationModel = mongoose.model('application');
 
 exports.addBadge = function(req, res) {
     var application_id = req.params.app_id;
     var badge = new badgeModel({
-        description: 'troisime badge ajouté',
-        name: 'TroisièmeBadge',
-        picture: 'troisieme.jpg',
-        level: 2,
+        name: 'superBadge',
+        description: 'un super badge',
+        picture: 'super.jpg',
+        level: 10,
         application: application_id
     });
     badge.save(function(err) {
         if (err) {
             return handleError(err);
         } else {
-            res.send({
-                "code": "200"
+            applicationModel.findByIdAndUpdate(application_id, {$addToSet: {badges: badge}},
+            function(err, badge) {
+                if (err) {
+                    throw err;
+                } else {
+                    res.send({
+                        "code": "200"
+                    });
+                }
             });
         }
     });
@@ -37,13 +50,33 @@ exports.getBadgeById = function(req, res) {
     });
 };
 
-exports.getAllBadgesApplication = function(req, res) {
+// récupère tous les players qui ont ce badge
+exports.getPlayers = function(req, res) {
     var application_id = req.params.app_id;
-    badgeModel.find({application: application_id}, function(err, badge) {
+    var badge_id = req.params.badge_id;
+    badgeModel.findById(badge_id, function(err, badge) {
         if (err) {
             throw err;
         } else {
-            res.send(badge);
+            playerModel.find({_id: {$in: badge.players}}, function(err, players) {
+                res.send(players);
+            });
+        }
+    });
+};
+
+// récupère l'application liée à ce badge
+// puisqu'on reçoit l'id de l'app, pas besoin de faire la permière partie de la requête...? --> idem que event
+exports.getApplication = function(req, res) {
+    var application_id = req.params.app_id;
+    var badge_id = req.params.badge_id;
+    badgeModel.findById(badge_id, function(err, badge) {
+        if (err) {
+            throw err;
+        } else {
+            applicationModel.find({_id: badge.application}, function(err, application) {
+                res.send(application);
+            });
         }
     });
 };
@@ -74,47 +107,54 @@ exports.updateBadge = function(req, res) {
     });
 };
 
-exports.deleteBadge = function(req, res) {
-    var id = req.params.badge_id;
-    badgeModel.remove({_id: id}, function(err) {
-        if (err) {
-            throw err;
-        } else {
-            ruleModel.remove({badge: id}).exec(); // suppression de tous les players liés à cette application!
-            res.send({
-                "code": "200"
-            });
-        }
-    });
-};
+// même question que pour getApplication dans event et badge, si on reçoit l'id de l'app --> pas besoin de la première partie de la requête.
+//exports.deleteBadge = function(req, res) {
+//    var id = req.params.badge_id;
+//    badgeModel.findById(id, function(err, badge) {
+//        if (err) {
+//            throw err;
+//        } else {
+//            applicationModel.findById(badge.application, function(err, application) {
+//                if (err) {
+//                    throw err;
+//                } else {
+//                    application.badges.remove({_id : id}, function(err) {
+//                        if (err) {
+//                            throw err;
+//                        } else {
+//                            application.save(function(err){});
+//                            badgeModel.remove({_id: id}, function(err) {
+//                                if (err) {
+//                                    throw err;
+//                                } else {
+//                                    res.send({
+//                                        "code": "200"
+//                                    });
+//                                }
+//                                ;
+//                            });
+//                        }
+//                        ;
+//                    });
+//                }
+//                ;
+//            });
+//        }
+//        ;
+//    });
+//};
 
-exports.addBadgeToPlayer = function(req, res) {
-    var badge_id = req.params.badge_id;
-    var player_id = req.params.player_id;
-    badgeModel.findByIdAndUpdate(badge_id, {$addToSet: {players: player_id}},
-    function(err, model) {
-        if (err) {
-            throw err;
-        } else {
-            res.send({
-                "code": "200"
-            });
-        }
-    }
-    );
-};
-
-exports.getBadgesOfPlayer = function(req, res) {
-    var application_id = req.params.app_id;
-    var player_id = req.params.player_id;
-    badgeModel.find({application: application_id, players: player_id}, function(err, badges) {
-        if (err) {
-            throw err;
-        } else {
-            res.send(badges);
-        }
-    });
-};
+//exports.getBadgesOfPlayer = function(req, res) {
+//    var application_id = req.params.app_id;
+//    var player_id = req.params.player_id;
+//    badgeModel.find({application: application_id, players: player_id}, function(err, badges) {
+//        if (err) {
+//            throw err;
+//        } else {
+//            res.send(badges);
+//        }
+//    });
+//};
 
 //exports.getNbLevel = function(req, res) {
 //    var application_id = req.params.app_id;
@@ -146,3 +186,127 @@ exports.getBadgesOfPlayer = function(req, res) {
 //    }
 //    return estDansTableau;
 //};
+
+//exports.getAllBadgesApplication = function(req, res) {
+//    var application_id = req.params.app_id;
+//    badgeModel.find({application: application_id}, function(err, badge) {
+//        if (err) {
+//            throw err;
+//        } else {
+//            res.send(badge);
+//        }
+//    });
+//};
+
+
+//update(
+//                            {_id : application.badges},
+//                    {$pull: {badges: {_id: id}}}
+
+
+exports.deleteBadge = function(req, res) {
+    var id = req.params.badge_id;
+    badgeModel.findById(id, function(err, badge) {
+        if (err) {
+            throw err;
+        } else {
+            playerModel.find({_id: {$in: badge.players}}, function(err, players) {
+                if (err) {
+                    throw err;
+                } else {
+                    console.log(players);
+                    var player;
+                    for (var i = 0, l = players.length; i < l; i++) {
+                        player = players[i];
+                        player.collection.update(
+                                {'badges._id': new mongoose.Types.ObjectId(id)},
+                        {$pull: {'badges': {_id: new mongoose.Types.ObjectId(id)}}}, function(err){});
+                    }
+                    // mise à jour de l'application en supprimant le badge de sa liste
+                    // récupération de l'application liée au badge
+                    applicationModel.findById(badge.application, function(err, application) {
+                        if (err) {
+                            throw err;
+                        } else {
+                            // mise à jour de l'application en supprimant le badge de sa liste
+                            application.collection.update(
+                                    {'badges._id': new mongoose.Types.ObjectId(id)},
+                            {$pull: {'badges': {_id: new mongoose.Types.ObjectId(id)}}}, function(err) {
+                                if (err) {
+                                    throw err;
+                                } else {
+                                    // suppression effective du badge
+                                    badgeModel.remove({_id: id}, function(err) {
+                                        if (err) {
+                                            throw err;
+                                        } else {
+                                            res.send({
+                                                "code": "200"
+                                            });
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        }
+        ;
+    });
+};
+
+//exports.deleteBadge = function(req, res) {
+//    var id = req.params.badge_id;
+//    badgeModel.findById(id, function(err, badge) {
+//        if (err) {
+//            throw err;
+//        } else {
+//            applicationModel.update(
+//                    {_id: badge.application},
+//            {$pull: {badges: {_id: id}}}, function(err) {
+//                if (err) {
+//                    throw err;
+//                } else {
+//                    badgeModel.remove({_id: id}, function(err) {
+//                        if (err) {
+//                            throw err;
+//                        } else {
+//                            res.send({
+//                                "code": "200"
+//                            });
+//                        }
+//                    });
+//                }
+//            });
+//        }
+//    });
+//};
+
+//exports.deleteBadge = function(req, res) {
+//    var id = req.params.badge_id;
+//    badgeModel.findById(id, function(err, badge) {
+//        if (err) {
+//            throw err;
+//        } else {
+//            applicationModel.update(
+//                    {'badges._id': new mongoose.Types.ObjectId(badge.application)},
+//            {$pull: {'badges': {_id: new mongoose.Types.ObjectId(id)}}}, function(err) {
+//                if (err) {
+//                    throw err;
+//                } else {
+//                    badgeModel.remove({_id: id}, function(err) {
+//                        if (err) {
+//                            throw err;
+//                        } else {
+//                            res.send({
+//                                "code": "200"
+//                            });
+//                        }
+//                    });
+//                }
+//            });
+//        }
+//    });
+//};
+            

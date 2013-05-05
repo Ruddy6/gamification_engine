@@ -56,10 +56,34 @@ exports.getApplicationById = function(req, res) {
     });
 };
 
+// récupère tous les players d'une application
+exports.getPlayers = function(req, res) {
+    var application_id = req.params.id;
+    applicationModel.find({_id: application_id}, {players: 1}, function(err, players) {
+        if (err) {
+            throw err;
+        } else {
+            res.send(players);
+        }
+    });
+};
+
+// récupère tous les badges d'une application
+exports.getBadges = function(req, res) {
+    var application_id = req.params.id;
+    applicationModel.find({_id: application_id}, {badges: 1}, function(err, badges) {
+        if (err) {
+            throw err;
+        } else {
+            res.send(badges);
+        }
+    });
+};
+
 exports.updateApplication = function(req, res) {
     var id = req.params.id;
 
-    applicationModel.findByIdAndUpdate(id, {$set: {name: 'Un nom à jour'}}, function(err, tank) {
+    applicationModel.findByIdAndUpdate(id, {$set: {name: 'Un nom à jour'}}, function(err, application) {
         if (err) {
             return handleError(err);
         } else {
@@ -79,21 +103,8 @@ exports.deleteApplication = function(req, res) {
             badgeModel.remove({application: id}).exec(); // suppression de tous les badges liés à cette application!
             eventModel.remove({application: id}).exec(); // suppression de tous les events liés à cette application!
             playerModel.remove({application: id}).exec(); // suppression de tous les players liés à cette application!
-            ruleModel.remove({application: id}).exec(); // suppression de tous les players liés à cette application!
+            ruleModel.remove({application: id}).exec(); // suppression de toutes les règles liées à cette application!
 
-//            // Récupère tous les player liés à l'application à supprimer et enlève le lien du tableau d'application
-//            playerModel.find({applications: id}, function(err, players) {
-//                if (err) {
-//                    throw err;
-//                } else {
-//                    var player;
-//                    for (var i = 0, l = players.length; i < l; i++) {
-//                        player = players[i];
-//                        player.applications.remove(id)
-//                        player.save(function(err){});
-//                    }
-//                }
-//            });
             res.send({
                 "code": "200"
             });
