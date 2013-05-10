@@ -1,15 +1,13 @@
 var mongoose = require('mongoose');
+require('./typeEventSchema');
 require('./applicationSchema');
-var playerSchema = require('./playerSchema');
-var ruleSchema = require('./ruleSchema');
+require('./playerSchema');
 
 var eventSchema = new mongoose.Schema({
-    type: Number,
-    points: Number,
+    type: { type: mongoose.Schema.Types.ObjectId, ref: 'typeEvent' },
     timestamp: { type : Date, default : Date.now },
     application : { type: mongoose.Schema.Types.ObjectId, ref: 'application' },
-    player : playerSchema,
-    rule : ruleSchema
+    player : { type: mongoose.Schema.Types.ObjectId, ref: 'player' }
 });
 
 var modeleEvent = mongoose.model('event', eventSchema);

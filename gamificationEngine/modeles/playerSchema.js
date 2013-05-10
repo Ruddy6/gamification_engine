@@ -1,18 +1,20 @@
 var mongoose = require('mongoose');
 require('./applicationSchema');
-var eventSchema = require('./eventSchema');
-var badgeSchema = require('./badgeSchema');
+require('./typeEventSchema');
+require('./badgeSchema');
 
 var playerSchema = new mongoose.Schema({
     firstname: String,
     lastname: String,
     pseudo: String,
     email: String,
-    level : Number,
-    nbPoints : Number,
+    points : Number,
     application : { type: mongoose.Schema.Types.ObjectId, ref: 'application' },
-    events : [eventSchema],
-    badges : [badgeSchema]
+    events : [{
+            type : { type: mongoose.Schema.Types.ObjectId, ref: 'typeEvent' },
+            quantity : Number
+    }],
+    badges : [{ type: mongoose.Schema.Types.ObjectId, ref: 'badge' }]
 });
 
 var playerEvent = mongoose.model('player', playerSchema);
