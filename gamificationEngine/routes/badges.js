@@ -15,10 +15,9 @@ var applicationModel = mongoose.model('application');
 exports.addBadge = function(req, res) {
     var application_id = req.params.app_id;
     var badge = new badgeModel({
-        name: 'superBadge',
-        description: 'un super badge',
-        picture: 'super.jpg',
-        level: 10,
+        name: 'folieMeurtière',
+        description: '5 frags',
+        picture: 'folie.jpg',
         application: application_id
     });
     badge.save(function(err) {
@@ -77,18 +76,6 @@ exports.getApplication = function(req, res) {
             applicationModel.find({_id: badge.application}, function(err, application) {
                 res.send(application);
             });
-        }
-    });
-};
-
-exports.getBagdesByLevel = function(req, res) {
-    var application_id = req.params.app_id;
-    var level = req.params.level;
-    badgeModel.find({application: application_id, level: level}, function(err, badge) {
-        if (err) {
-            throw err;
-        } else {
-            res.send(badge);
         }
     });
 };

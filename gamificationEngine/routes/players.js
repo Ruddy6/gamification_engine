@@ -17,8 +17,6 @@ exports.addPlayer = function(req, res) {
         lastname: 'exu',
         pseudo: 'deux',
         email: 'dexu.com',
-        level: 2,
-        nbPoints: 222,
         application: application_id
     });
     player.save(function(err) {
@@ -50,21 +48,15 @@ exports.getPlayerById = function(req, res) {
     });
 };
 
-exports.addBadge = function(req, res) {
-    var badge_id = req.params.badge_id;
-    var player_id = req.params.player_id;
-    badgeModel.findByIdAndUpdate(badge_id, {$addToSet: {players: player_id}}, function(err, badge) {
+exports.addBadgeToPlayer = function(badge_id, player_id) {
+    badgeModel.findOneAndUpdate({_id: badge_id}, {$addToSet: {players: player_id}}, function(err, badge) {
         if (err) {
             throw err;
         } else {
-            playerModel.findByIdAndUpdate(player_id, {$addToSet: {badges: badge}},
+            playerModel.findOneAndUpdate({_id: player_id}, {$addToSet: {badges: badge._id}},
             function(err, player) {
                 if (err) {
                     throw err;
-                } else {
-                    res.send({
-                        "code": "200"
-                    });
                 }
             });
         }
@@ -117,38 +109,32 @@ exports.deletePlayer = function(req, res) {
                 if (err) {
                     throw err;
                 } else {
-                    // mise à jour de l'application en supprimant le badge de sa liste
-                    application.collection.update(
-                            {'players._id': new mongoose.Types.ObjectId(id)},
-                    {$pull: {'players': {_id: new mongoose.Types.ObjectId(id)}}}, function(err) {
+                    application.players.remove(id);
+                    application.save(function(err) {
+                    });
+                    // mise à jour de l'application en supprimant le player de sa liste
+                    playerModel.remove({_id: id}, function(err) {
                         if (err) {
                             throw err;
                         } else {
-                            playerModel.remove({_id: id}, function(err) {
+                            eventModel.remove({player: id}).exec(); // suppression de tous les events liés à ce player
+                            badgeModel.find({players: id}, function(err, badges) {
                                 if (err) {
                                     throw err;
                                 } else {
-                                    eventModel.remove({player: id}).exec(); // suppression de tous les events liés à ce player
-                                    badgeModel.find({players: id}, function(err, badges) {
-                                        if (err) {
-                                            throw err;
-                                        } else {
-                                            var badge;
-                                            for (var i = 0, l = badges.length; i < l; i++) {
-                                                badge = badges[i];
-                                                badge.players.remove(id);
-                                                badge.save(function(err) {
-                                                });
-                                            }
-                                        }
-                                    });
-                                    res.send({
-                                        "code": "200"
-                                    });
+                                    var badge;
+                                    for (var i = 0, l = badges.length; i < l; i++) {
+                                        badge = badges[i];
+                                        badge.players.remove(id);
+                                        badge.save(function(err) {
+                                        });
+                                    }
                                 }
                             });
+                            res.send({
+                                "code": "200"
+                            });
                         }
-                        ;
                     });
                 }
             });

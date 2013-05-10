@@ -6,14 +6,14 @@ var mongoose = require('mongoose');
 var mongo = require('mongodb');
 require('./../modeles/applicationSchema');
 require('./../modeles/badgeSchema');
-require('./../modeles/eventSchema');
+require('./../modeles/typeEventSchema');
 require('./../modeles/playerSchema');
 require('./../modeles/ruleSchema');
 
 // Récupération du modèle pour d'application
 var applicationModel = mongoose.model('application');
 var badgeModel = mongoose.model('badge');
-var eventModel = mongoose.model('event');
+var typeEventModel = mongoose.model('typeEvent');
 var playerModel = mongoose.model('player');
 var ruleModel = mongoose.model('rule');
 
@@ -21,8 +21,8 @@ exports.addApplication = function(req, res) {
     // On créé une instance du Model
     var uneApplication = new applicationModel({name: 'applicationTest'});
     uneApplication.description = 'applicaiton de test';
-    uneApplication.apiKey = '32l23lk42'; // peut aussi être effectué à l'instanciation
-    uneApplication.apiSecret = 'test';
+    uneApplication.publicKey = '32l23lk42'; // peut aussi être effectué à l'instanciation
+    uneApplication.privateKey = 'test';
 
     // On le sauvegarde dans MongoDB !
     uneApplication.save(function(err) {
@@ -101,7 +101,7 @@ exports.deleteApplication = function(req, res) {
             throw err;
         } else {
             badgeModel.remove({application: id}).exec(); // suppression de tous les badges liés à cette application!
-            eventModel.remove({application: id}).exec(); // suppression de tous les events liés à cette application!
+            typeEventModel.remove({application: id}).exec(); // suppression de tous les events liés à cette application!
             playerModel.remove({application: id}).exec(); // suppression de tous les players liés à cette application!
             ruleModel.remove({application: id}).exec(); // suppression de toutes les règles liées à cette application!
 
