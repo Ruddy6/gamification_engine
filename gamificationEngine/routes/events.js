@@ -1,5 +1,5 @@
 var mongoose = require('mongoose');
-var mongo = require('mongodb');
+
 require('./../modeles/eventSchema');
 require('./../modeles/playerSchema');
 require('./../modeles/applicationSchema');

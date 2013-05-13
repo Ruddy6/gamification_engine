@@ -1,5 +1,5 @@
 var mongoose = require('mongoose');
-var mongo = require('mongodb');
+
 require('./../modeles/playerSchema');
 require('./../modeles/applicationSchema');
 require('./../modeles/badgeSchema');
@@ -17,6 +17,7 @@ exports.addPlayer = function(req, res) {
         lastname: 'exu',
         pseudo: 'deux',
         email: 'dexu.com',
+        points: 200,
         application: application_id
     });
     player.save(function(err) {
@@ -88,7 +89,7 @@ exports.getEvents = function(req, res) {
 exports.updatePlayer = function(req, res) {
     var id = req.params.player_id;
 
-    playerModel.findByIdAndUpdate(id, {$set: {email: 'unMailAJour@mail.com'}}, function(err, event) {
+    playerModel.findByIdAndUpdate(id, {$set: {points: 150}}, function(err, event) {
         if (err) {
             return handleError(err);
         } else {

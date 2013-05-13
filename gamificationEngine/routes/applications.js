@@ -3,7 +3,7 @@
  */
 
 var mongoose = require('mongoose');
-var mongo = require('mongodb');
+
 require('./../modeles/applicationSchema');
 require('./../modeles/badgeSchema');
 require('./../modeles/typeEventSchema');

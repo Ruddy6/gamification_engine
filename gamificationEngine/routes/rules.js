@@ -1,5 +1,5 @@
 var mongoose = require('mongoose');
-var mongo = require('mongodb');
+
 require('./../modeles/ruleSchema');
 require('./../modeles/badgeSchema');
 
