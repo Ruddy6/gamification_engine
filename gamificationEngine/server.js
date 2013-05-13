@@ -17,6 +17,7 @@ var express = require('express'),
         typeEvent = require('./routes/typeEvents');
         player = require('./routes/players');
         rule = require('./routes/rules');
+        leaderboard = require('./routes/leaderboard');
 
 var app = express();
 
@@ -37,6 +38,7 @@ app.post('/applications', application.addApplication);
 app.get('/applications/:id', application.getApplicationById);
 app.get('/applications/:id/players', application.getPlayers);
 app.get('/applications/:id/badges', application.getBadges);
+app.get('/applications/:id/leaderboard', leaderboard.getLeaderboard);
 app.put('/applications/:id', application.updateApplication);
 app.delete('/applications/:id', application.deleteApplication);
 
