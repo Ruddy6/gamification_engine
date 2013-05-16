@@ -24,8 +24,8 @@ exports.addPlayer = function(req, res) {
         if (err) {
             return handleError(err);
         } else {
-            applicationModel.findByIdAndUpdate(application_id, {$addToSet: {players: player}},
-            function(err, player) {
+            applicationModel.findByIdAndUpdate(application_id, {$addToSet: {players: player._id}, $inc: {numberOfPlayer: 1}},
+            function(err, application) {
                 if (err) {
                     throw err;
                 } else {
@@ -49,12 +49,22 @@ exports.getPlayerById = function(req, res) {
     });
 };
 
+exports.getPlayer = function(req, res) {
+    var player_id = req.params.player_id;
+    playerModel.aggregate([
+        {$match: {_id: new mongoose.Types.ObjectId(player_id)}}
+        , {$project: {firstname: 1, lastname: 1, pseudo: 1, email: 1, points: 1, events: 1, numberOfBadge: 1}}
+    ], function(err, player) {
+        res.send(player);
+    });
+};
+
 exports.addBadgeToPlayer = function(badge_id, player_id) {
-    badgeModel.findOneAndUpdate({_id: badge_id}, {$addToSet: {players: player_id}}, function(err, badge) {
+    badgeModel.findOneAndUpdate({_id: badge_id}, {$addToSet: {players: player_id}, $inc: {numberOfOwner: 1}}, function(err, badge) {
         if (err) {
             throw err;
         } else {
-            playerModel.findOneAndUpdate({_id: player_id}, {$addToSet: {badges: badge._id}},
+            playerModel.findOneAndUpdate({_id: player_id}, {$addToSet: {badges: badge._id}, $inc: {points: badge.points, numberOfBadge: 1}},
             function(err, player) {
                 if (err) {
                     throw err;
@@ -106,7 +116,7 @@ exports.deletePlayer = function(req, res) {
         if (err) {
             throw err;
         } else {
-            applicationModel.findById(player.application, function(err, application) {
+            applicationModel.findOneAndUpdate({_id: player.application}, {$inc: {numberOfPlayer: -1}}, function(err, application) {
                 if (err) {
                     throw err;
                 } else {
@@ -119,21 +129,14 @@ exports.deletePlayer = function(req, res) {
                             throw err;
                         } else {
                             eventModel.remove({player: id}).exec(); // suppression de tous les events liés à ce player
-                            badgeModel.find({players: id}, function(err, badges) {
+                            badgeModel.update({players: new mongoose.Types.ObjectId(id)}, {$inc: {numberOfOwner: -1}, $pull: {players: id}}, {multi: true}, function(err, badges) {
                                 if (err) {
                                     throw err;
                                 } else {
-                                    var badge;
-                                    for (var i = 0, l = badges.length; i < l; i++) {
-                                        badge = badges[i];
-                                        badge.players.remove(id);
-                                        badge.save(function(err) {
-                                        });
-                                    }
+                                    res.send({
+                                        "code": "200"
+                                    });
                                 }
-                            });
-                            res.send({
-                                "code": "200"
                             });
                         }
                     });
@@ -142,5 +145,4 @@ exports.deletePlayer = function(req, res) {
         }
     });
 };
-
                     

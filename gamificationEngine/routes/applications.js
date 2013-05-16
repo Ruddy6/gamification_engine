@@ -21,8 +21,10 @@ exports.addApplication = function(req, res) {
     // On créé une instance du Model
     var uneApplication = new applicationModel({name: 'applicationTest'});
     uneApplication.description = 'applicaiton de test';
-    uneApplication.publicKey = '32l23lk42'; // peut aussi être effectué à l'instanciation
-    uneApplication.privateKey = 'test';
+    uneApplication.userKey = '32l23lk42';
+    uneApplication.adminKey = 'test';
+    uneApplication.numberOfBadge = 0;
+    uneApplication.numberOfPlayer = 0;
 
     // On le sauvegarde dans MongoDB !
     uneApplication.save(function(err) {
@@ -56,27 +58,36 @@ exports.getApplicationById = function(req, res) {
     });
 };
 
+exports.getApplication = function(req, res) {
+    var application_id = req.params.id;
+    applicationModel.aggregate([
+        {$match: {_id: new mongoose.Types.ObjectId(application_id)}}
+        , {$project: {name: 1, description: 1, numberOfBadge: 1, numberOfPlayer: 1, typeEvents: 1}}
+    ], function(err, application) {
+        res.send(application);
+    });
+};
+
 // récupère tous les players d'une application
 exports.getPlayers = function(req, res) {
     var application_id = req.params.id;
-    applicationModel.find({_id: application_id}, {players: 1}, function(err, players) {
-        if (err) {
-            throw err;
-        } else {
-            res.send(players);
-        }
+    playerModel.aggregate([
+        {$match: {application: new mongoose.Types.ObjectId(application_id)}}
+        , {$project: {pseudo: 1, points: 1, numberOfBadge: 1}}
+        , { $sort: {pseudo: 1}}
+    ], function(err, player) {
+        res.send(player);
     });
 };
 
 // récupère tous les badges d'une application
 exports.getBadges = function(req, res) {
     var application_id = req.params.id;
-    applicationModel.find({_id: application_id}, {badges: 1}, function(err, badges) {
-        if (err) {
-            throw err;
-        } else {
-            res.send(badges);
-        }
+    badgeModel.aggregate([
+        {$match: {application: new mongoose.Types.ObjectId(application_id)}}
+        , {$project: {name: 1, description: 1, picture: 1, points: 1, numberOfOwner: 1}}
+    ], function(err, badge) {
+        res.send(badge);
     });
 };
 

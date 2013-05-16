@@ -4,16 +4,16 @@ require('./../modeles/eventSchema');
 require('./../modeles/playerSchema');
 require('./../modeles/applicationSchema');
 require('./../modeles/ruleSchema');
-require('./../modeles/badgeSchema');
+require('./../modeles/typeEventSchema');
 
 var playersController = require('./players');
 var rulesController = require('./rules');
+//var typeEventController = require('./typeEvents');
 
 var eventModel = mongoose.model('event');
 var playerModel = mongoose.model('player');
 var applicationModel = mongoose.model('application');
-var ruleModel = mongoose.model('rule');
-var badgeModel = mongoose.model('badge');
+var typeEventModel = mongoose.model('typeEvent');
 
 exports.addEvent = function(req, res) {
     var application_id = req.params.app_id;
@@ -30,41 +30,47 @@ exports.addEvent = function(req, res) {
         if (err) {
             return handleError(err);
         } else {
-            playerModel.find({_id: player_id, 'events.type': event.type},
-            function(err, player) {
+            typeEventModel.findById(event.type, function(err, typeEvent) {
                 if (err) {
                     throw err;
                 } else {
-                    // si le player possède déjà un event du type de l'event à ajouter, on incrémente simplement la quantité de ce type
-                    // sinon, on ajoute une nouvelle entrée dans le tableau
-                    if (player.length === 0) {
-                        playerModel.findByIdAndUpdate(player_id, {$addToSet: {events: {type: typeEvent_id, quantity: 1}}}, function(err, player) {
-                            if (err) {
-                                throw err;
-                            } else {
-                                rulesController.checkRules(1, event, player_id);
-                            }
-                        });
-                    } else {
-                        playerModel.findOneAndUpdate(
-                                {_id: player_id, 'events.type': event.type},
-                        {$inc: {'events.$.quantity': 1}}, function(err, updatedPlayer) {
-                            if (err) {
-                                throw err;
-                            } else {
-                                var nbEvent = 0;
-                                for (var i = 0; i < updatedPlayer.events.length; i++)
-                                {
-                                    if ("'"+updatedPlayer.events[i].type+"'" === "'"+event.type+"'") {
-                                        nbEvent = updatedPlayer.events[i].quantity;
+                    playerModel.find({_id: player_id, 'events.type': event.type},
+                    function(err, player) {
+                        if (err) {
+                            throw err;
+                        } else {
+                            // si le player possède déjà un event du type de l'event à ajouter, on incrémente simplement la quantité de ce type
+                            // sinon, on ajoute une nouvelle entrée dans le tableau
+                            if (player.length === 0) {
+                                playerModel.findByIdAndUpdate(player_id, {$inc: {points: typeEvent.points}, $addToSet: {events: {type: typeEvent_id, name: typeEvent.nom, quantity: 1}}}, function(err, player) {
+                                    if (err) {
+                                        throw err;
+                                    } else {
+                                        rulesController.checkRules(1, event, player_id);
                                     }
-                                }
-                                rulesController.checkRules(nbEvent, event, player_id);
+                                });
+                            } else {
+                                playerModel.findOneAndUpdate(
+                                        {_id: player_id, 'events.type': event.type},
+                                {$inc: {'events.$.quantity': 1, points: typeEvent.points}}, function(err, updatedPlayer) {
+                                    if (err) {
+                                        throw err;
+                                    } else {
+                                        var nbEvent = 0;
+                                        for (var i = 0; i < updatedPlayer.events.length; i++)
+                                        {
+                                            if ("'" + updatedPlayer.events[i].type + "'" === "'" + event.type + "'") {
+                                                nbEvent = updatedPlayer.events[i].quantity;
+                                            }
+                                        }
+                                        rulesController.checkRules(nbEvent, event, player_id);
+                                    }
+                                });
                             }
-                        });
-                    }
-                    res.send({
-                        "code": "200"
+                            res.send({
+                                "code": "200"
+                            });
+                        }
                     });
                 }
             });
@@ -134,18 +140,36 @@ exports.deleteEvent = function(req, res) {
         if (err) {
             throw err;
         } else {
-            // récupération du player lié à cet event
-            playerModel.findById(event.player, function(err, player) {
+            typeEventModel.findById(event.type, function(err, typeEvent) {
                 if (err) {
                     throw err;
                 } else {
-                    // mise à jour du player en supprimant l'event de sa liste
-                    player.collection.update(
-                            {'events._id': new mongoose.Types.ObjectId(id)},
-                    {$pull: {'events': {_id: new mongoose.Types.ObjectId(id)}}}, function(err) {
+                    // récupération du player lié à cet event
+                    playerModel.findById(event.player, function(err, player) {
                         if (err) {
                             throw err;
                         } else {
+                            // mise à jour du player en supprimant l'event de sa liste
+                            var eventToDel;
+                            for (var i = 0; i < player.events.length; i++) {
+                                if ("'" + player.events[i].type + "'" === "'" + event.type + "'") {
+                                    eventToDel = player.events[i];
+                                }
+                            }
+                            if ("'" + eventToDel.quantity + "'" === "'" + 1 + "'") {
+                                playerModel.findOneAndUpdate(
+                                        {_id: event.player, 'events.type': event.type},
+                                {$inc: {points: -typeEvent.points}, $pull: {'events': {type: event.type}}}, function(err, updatedPlayer) {
+
+                                });
+
+                            } else {
+                                playerModel.findOneAndUpdate(
+                                        {_id: event.player, 'events.type': event.type},
+                                {$inc: {'events.$.quantity': -1, points: -typeEvent.points}}, function(err, updatedPlayer) {
+
+                                });
+                            }
                             // suppression effective de l'event
                             eventModel.remove({_id: id}, function(err) {
                                 if (err) {
@@ -161,5 +185,6 @@ exports.deleteEvent = function(req, res) {
                 }
             });
         }
+        ;
     });
 };

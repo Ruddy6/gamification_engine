@@ -10,11 +10,11 @@ exports.getLeaderboard = function(req, res) {
             pseudo: 1,
             points: 1
         }},
-        { $sort: {points: -1}}, function(err, res) {
+        { $sort: {points: -1}}, function(err, leaderboard) {
         if (err) {
             throw err;
         } else {
-            console.log(res);
+            res.send(leaderboard);
         }
     });
 };

@@ -18,14 +18,15 @@ exports.addBadge = function(req, res) {
         name: 'folieMeurtière',
         description: '5 frags',
         picture: 'folie.jpg',
+        points: 100,
         application: application_id
     });
     badge.save(function(err) {
         if (err) {
             return handleError(err);
         } else {
-            applicationModel.findByIdAndUpdate(application_id, {$addToSet: {badges: badge}},
-            function(err, badge) {
+            applicationModel.findByIdAndUpdate(application_id, {$addToSet: {badges: badge}, $inc: {numberOfBadge: 1}},
+            function(err, application) {
                 if (err) {
                     throw err;
                 } else {
@@ -46,6 +47,16 @@ exports.getBadgeById = function(req, res) {
         } else {
             res.send(badge);
         }
+    });
+};
+
+exports.getBadge = function(req, res) {
+    var badge_id = req.params.badge_id;
+    badgeModel.aggregate([
+        {$match: {_id: new mongoose.Types.ObjectId(badge_id)}}
+        , {$project: {name: 1, description: 1, picture: 1, points: 1, numberOfOwner: 1, rules: 1}}
+    ], function(err, badge) {
+        res.send(badge);
     });
 };
 
@@ -94,147 +105,49 @@ exports.updateBadge = function(req, res) {
     });
 };
 
-// même question que pour getApplication dans event et badge, si on reçoit l'id de l'app --> pas besoin de la première partie de la requête.
-//exports.deleteBadge = function(req, res) {
-//    var id = req.params.badge_id;
-//    badgeModel.findById(id, function(err, badge) {
-//        if (err) {
-//            throw err;
-//        } else {
-//            applicationModel.findById(badge.application, function(err, application) {
-//                if (err) {
-//                    throw err;
-//                } else {
-//                    application.badges.remove({_id : id}, function(err) {
-//                        if (err) {
-//                            throw err;
-//                        } else {
-//                            application.save(function(err){});
-//                            badgeModel.remove({_id: id}, function(err) {
-//                                if (err) {
-//                                    throw err;
-//                                } else {
-//                                    res.send({
-//                                        "code": "200"
-//                                    });
-//                                }
-//                                ;
-//                            });
-//                        }
-//                        ;
-//                    });
-//                }
-//                ;
-//            });
-//        }
-//        ;
-//    });
-//};
-
-//exports.getBadgesOfPlayer = function(req, res) {
-//    var application_id = req.params.app_id;
-//    var player_id = req.params.player_id;
-//    badgeModel.find({application: application_id, players: player_id}, function(err, badges) {
-//        if (err) {
-//            throw err;
-//        } else {
-//            res.send(badges);
-//        }
-//    });
-//};
-
-//exports.getNbLevel = function(req, res) {
-//    var application_id = req.params.app_id;
-//    db.collection('badges', function(err, collection) {
-//        collection.find({applications: new ObjectId(application_id)}).toArray(function(err, items) {
-//            var levels = new Array();
-//            var nbLevel = new Array();
-//
-//            for (var i = 0; i < items.length; i++) {
-//                var level = items[i]['level'];
-//                if (!valueInArray(levels, level)) {
-//                    levels.push(level);
-//                }
-//            }
-//            nbLevel.push(levels.length);
-//            res.send(nbLevel);
-//        });
-//    });
-//};
-//
-//valueInArray = function(tableau, valeur) {
-//    var estDansTableau = false;
-//    if (tableau.length != 0) {
-//        for (var i = 0; i < tableau.length; i++) {
-//            if(tableau[i] == valeur){
-//                estDansTableau = true;
-//            }
-//        }
-//    }
-//    return estDansTableau;
-//};
-
-//exports.getAllBadgesApplication = function(req, res) {
-//    var application_id = req.params.app_id;
-//    badgeModel.find({application: application_id}, function(err, badge) {
-//        if (err) {
-//            throw err;
-//        } else {
-//            res.send(badge);
-//        }
-//    });
-//};
-
-
-//update(
-//                            {_id : application.badges},
-//                    {$pull: {badges: {_id: id}}}
-
-
 exports.deleteBadge = function(req, res) {
     var id = req.params.badge_id;
     badgeModel.findById(id, function(err, badge) {
         if (err) {
             throw err;
         } else {
+            ruleModel.remove({badge: badge.id}).exec();
             playerModel.find({_id: {$in: badge.players}}, function(err, players) {
                 if (err) {
                     throw err;
                 } else {
-                    console.log(players);
                     var player;
                     for (var i = 0, l = players.length; i < l; i++) {
                         player = players[i];
-                        player.collection.update(
-                                {'badges._id': new mongoose.Types.ObjectId(id)},
-                        {$pull: {'badges': {_id: new mongoose.Types.ObjectId(id)}}}, function(err){});
+                        player.badges.remove(id);
+                        player.save(function(err) {
+                        });
+                        playerModel.findOneAndUpdate(
+                                {_id: player._id},
+                        {$inc: {points: -badge.points, numberOfBadge: -1}}, function(err, updatedPlayer) {
+                        });
                     }
                     // mise à jour de l'application en supprimant le badge de sa liste
                     // récupération de l'application liée au badge
-                    applicationModel.findById(badge.application, function(err, application) {
+                    applicationModel.findOneAndUpdate({_id: badge.application}, {$inc: {numberOfBadge: -1}}, function(err, application) {
                         if (err) {
                             throw err;
                         } else {
                             // mise à jour de l'application en supprimant le badge de sa liste
-                            application.collection.update(
-                                    {'badges._id': new mongoose.Types.ObjectId(id)},
-                            {$pull: {'badges': {_id: new mongoose.Types.ObjectId(id)}}}, function(err) {
+                            application.badges.remove(id);
+                            application.save(function(err) {
+                            });
+                            badgeModel.remove({_id: id}, function(err) {
                                 if (err) {
                                     throw err;
                                 } else {
-                                    // suppression effective du badge
-                                    badgeModel.remove({_id: id}, function(err) {
-                                        if (err) {
-                                            throw err;
-                                        } else {
-                                            res.send({
-                                                "code": "200"
-                                            });
-                                        }
+                                    res.send({
+                                        "code": "200"
                                     });
                                 }
                             });
                         }
+                        ;
                     });
                 }
             });
@@ -242,58 +155,4 @@ exports.deleteBadge = function(req, res) {
         ;
     });
 };
-
-//exports.deleteBadge = function(req, res) {
-//    var id = req.params.badge_id;
-//    badgeModel.findById(id, function(err, badge) {
-//        if (err) {
-//            throw err;
-//        } else {
-//            applicationModel.update(
-//                    {_id: badge.application},
-//            {$pull: {badges: {_id: id}}}, function(err) {
-//                if (err) {
-//                    throw err;
-//                } else {
-//                    badgeModel.remove({_id: id}, function(err) {
-//                        if (err) {
-//                            throw err;
-//                        } else {
-//                            res.send({
-//                                "code": "200"
-//                            });
-//                        }
-//                    });
-//                }
-//            });
-//        }
-//    });
-//};
-
-//exports.deleteBadge = function(req, res) {
-//    var id = req.params.badge_id;
-//    badgeModel.findById(id, function(err, badge) {
-//        if (err) {
-//            throw err;
-//        } else {
-//            applicationModel.update(
-//                    {'badges._id': new mongoose.Types.ObjectId(badge.application)},
-//            {$pull: {'badges': {_id: new mongoose.Types.ObjectId(id)}}}, function(err) {
-//                if (err) {
-//                    throw err;
-//                } else {
-//                    badgeModel.remove({_id: id}, function(err) {
-//                        if (err) {
-//                            throw err;
-//                        } else {
-//                            res.send({
-//                                "code": "200"
-//                            });
-//                        }
-//                    });
-//                }
-//            });
-//        }
-//    });
-//};
             
