@@ -12,9 +12,11 @@ var playerSchema = new mongoose.Schema({
     application : { type: mongoose.Schema.Types.ObjectId, ref: 'application' },
     events : [{
             type : { type: mongoose.Schema.Types.ObjectId, ref: 'typeEvent' },
+            name : String,
             quantity : Number
     }],
-    badges : [{ type: mongoose.Schema.Types.ObjectId, ref: 'badge' }]
+    badges : [{ type: mongoose.Schema.Types.ObjectId, ref: 'badge' }],
+    numberOfBadge : Number
 });
 
 var playerEvent = mongoose.model('player', playerSchema);
