@@ -28,23 +28,27 @@ exports.addEvent = function(req, res) {
 
     event.save(function(err) {
         if (err) {
-            return handleError(err);
+            console.log(err);
+            res.send({"code": "400"});
         } else {
             typeEventModel.findById(event.type, function(err, typeEvent) {
                 if (err) {
-                    throw err;
+                    console.log(err);
+                    res.send({"code": "400"});
                 } else {
                     playerModel.find({_id: player_id, 'events.type': event.type},
                     function(err, player) {
                         if (err) {
-                            throw err;
+                            console.log(err);
+                            res.send({"code": "400"});
                         } else {
                             // si le player possède déjà un event du type de l'event à ajouter, on incrémente simplement la quantité de ce type
                             // sinon, on ajoute une nouvelle entrée dans le tableau
                             if (player.length === 0) {
-                                playerModel.findByIdAndUpdate(player_id, {$inc: {points: typeEvent.points}, $addToSet: {events: {type: typeEvent_id, name: typeEvent.nom, quantity: 1}}}, function(err, player) {
+                                playerModel.findByIdAndUpdate(player_id, {$inc: {points: typeEvent.points}, $addToSet: {events: {type: typeEvent_id, name: typeEvent.name, quantity: 1}}}, function(err, player) {
                                     if (err) {
-                                        throw err;
+                                        console.log(err);
+                                        res.send({"code": "400"});
                                     } else {
                                         rulesController.checkRules(1, event, player_id);
                                     }
@@ -54,7 +58,8 @@ exports.addEvent = function(req, res) {
                                         {_id: player_id, 'events.type': event.type},
                                 {$inc: {'events.$.quantity': 1, points: typeEvent.points}}, function(err, updatedPlayer) {
                                     if (err) {
-                                        throw err;
+                                        console.log(err);
+                                        res.send({"code": "400"});
                                     } else {
                                         var nbEvent = 0;
                                         for (var i = 0; i < updatedPlayer.events.length; i++)
@@ -82,7 +87,8 @@ exports.getEventById = function(req, res) {
     var event_id = req.params.event_id;
     eventModel.findById(event_id, function(err, event) {
         if (err) {
-            throw err;
+            console.log(err);
+            res.send({"code": "400"});
         } else {
             res.send(event);
         }
@@ -91,63 +97,51 @@ exports.getEventById = function(req, res) {
 
 // récupère le player qui a effectué cet event
 exports.getPlayer = function(req, res) {
-    var application_id = req.params.app_id;
     var event_id = req.params.event_id;
     eventModel.findById(event_id, function(err, event) {
         if (err) {
-            throw err;
+            console.log(err);
+            res.send({"code": "400"});
         } else {
-            playerModel.find({_id: event.player}, function(err, player) {
+            playerModel.findById(event.player, function(err, player) {
                 res.send(player);
             });
         }
     });
 };
 
-// récupère l'application liée à cet event
-// puisqu'on reçoit l'id de l'app, pas besoin de faire la permière partie de la requête...?
-exports.getApplication = function(req, res) {
-    var application_id = req.params.app_id;
-    var event_id = req.params.event_id;
-    eventModel.findById(event_id, function(err, event) {
-        if (err) {
-            throw err;
-        } else {
-            applicationModel.find({_id: event.application}, function(err, application) {
-                res.send(application);
-            });
-        }
-    });
-};
-
-exports.updateEvent = function(req, res) {
-    var id = req.params.event_id;
-
-    eventModel.findByIdAndUpdate(id, {$set: {type: 'mise à jour'}}, function(err, event) {
-        if (err) {
-            return handleError(err);
-        } else {
-            res.send({
-                "code": "200"
-            });
-        }
-    });
-};
+//exports.updateEvent = function(req, res) {
+//    var id = req.params.event_id;
+//
+//    eventModel.findByIdAndUpdate(id, {$set: {type: 'mise à jour'}}, function(err, event) {
+//        if (err) {
+//            console.log(err);
+//            res.send({"code": "400"});
+//        } else {
+//            res.send({
+//                "code": "200"
+//            });
+//        }
+//    });
+//};
 
 exports.deleteEvent = function(req, res) {
     var id = req.params.event_id;
     eventModel.findById(id, function(err, event) {
         if (err) {
-            throw err;
+            console.log(err);
+            res.send({"code": "400"});
         } else {
             typeEventModel.findById(event.type, function(err, typeEvent) {
                 if (err) {
-                    throw err;
+                    console.log(err);
+                    res.send({"code": "400"});
                 } else {
                     // récupération du player lié à cet event
                     playerModel.findById(event.player, function(err, player) {
                         if (err) {
-                            throw err;
+                            console.log(err);
+                            res.send({"code": "400"});
                         } else {
                             // mise à jour du player en supprimant l'event de sa liste
                             var eventToDel;
@@ -173,7 +167,8 @@ exports.deleteEvent = function(req, res) {
                             // suppression effective de l'event
                             eventModel.remove({_id: id}, function(err) {
                                 if (err) {
-                                    throw err;
+                                    console.log(err);
+                                    res.send({"code": "400"});
                                 } else {
                                     res.send({
                                         "code": "200"

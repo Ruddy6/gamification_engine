@@ -7,10 +7,10 @@ var badgeSchema = new mongoose.Schema({
     name: String,
     description: String,
     picture: String,
-    points : Number,
+    points : {type : Number, required: true},
     application : { type: mongoose.Schema.Types.ObjectId, ref: 'application' },
     players : [{ type: mongoose.Schema.Types.ObjectId, ref: 'player' }],
-    numberOfOwner : Number,
+    numberOfOwner : {type: Number, default : 0},
     rules : [ruleSchema]
 });
 

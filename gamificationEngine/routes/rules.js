@@ -20,12 +20,14 @@ exports.addRule = function(req, res) {
     });
     rule.save(function(err) {
         if (err) {
-            return handleError(err);
+            console.log(err);
+            res.send({"code": "400"});
         } else {
-            badgeModel.findByIdAndUpdate(badge_id, {$addToSet: {rules: rule}},
+            badgeModel.findByIdAndUpdate(badge_id, {$addToSet: {rules: rule._id}},
             function(err, badge) {
                 if (err) {
-                    throw err;
+                    console.log(err);
+                    res.send({"code": "400"});
                 } else {
                     res.send({
                         "code": "200"
@@ -36,11 +38,12 @@ exports.addRule = function(req, res) {
     });
 };
 
-exports.getAllRulesApplication = function(req, res) {
+exports.getRules = function(req, res) {
     var application_id = req.params.app_id;
     ruleModel.find({application: application_id}, function(err, rules) {
         if (err) {
-            throw err;
+            console.log(err);
+            res.send({"code": "400"});
         } else {
             res.send(rules);
         }
@@ -51,7 +54,8 @@ exports.getRuleById = function(req, res) {
     var rule_id = req.params.rule_id;
     ruleModel.findById(rule_id, function(err, event) {
         if (err) {
-            throw err;
+            console.log(err);
+            res.send({"code": "400"});
         } else {
             res.send(event);
         }
@@ -61,7 +65,8 @@ exports.getRuleById = function(req, res) {
 exports.checkRules = function(nbEvent, eventAjoute, playerId) {
     ruleModel.find({typeEvent: eventAjoute.type, nbEvent: nbEvent}, function(err, rule) {
         if (err) {
-            throw err;
+            console.log(err);
+            res.send({"code": "400"});
         } else {
             if (rule.length !== 0) {
                 playersController.addBadgeToPlayer(rule[0].badge, playerId);
@@ -77,7 +82,8 @@ exports.updateRule = function(req, res) {
 
     ruleModel.findByIdAndUpdate(id, {$set: {badge: 1}}, function(err, rule) {
         if (err) {
-            return handleError(err);
+            console.log(err);
+            res.send({"code": "400"});
         } else {
             res.send({
                 "code": "200"
@@ -90,7 +96,8 @@ exports.deleteRule = function(req, res) {
     var id = req.params.rule_id;
     ruleModel.remove({_id: id}, function(err) {
         if (err) {
-            throw err;
+            console.log(err);
+            res.send({"code": "400"});
         } else {
             res.send({
                 "code": "200"

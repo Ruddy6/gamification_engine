@@ -3,8 +3,8 @@ require('./applicationSchema');
 
 var typeEventSchema = new mongoose.Schema({
     application : { type: mongoose.Schema.Types.ObjectId, ref: 'application' },
-    nom: String,
+    name: String,
     points : Number
 });
 
-var modeleEvent = mongoose.model('typeEvent', typeEventSchema);
+var modeleTypeEvent = mongoose.model('typeEvent', typeEventSchema);

@@ -8,15 +8,15 @@ var playerSchema = new mongoose.Schema({
     lastname: String,
     pseudo: String,
     email: String,
-    points : Number,
-    application : { type: mongoose.Schema.Types.ObjectId, ref: 'application' },
+    points : { type: Number, default: 10 },
+    application : { type: mongoose.Schema.Types.ObjectId, ref: 'application', required: true },
     events : [{
             type : { type: mongoose.Schema.Types.ObjectId, ref: 'typeEvent' },
             name : String,
-            quantity : Number
+            quantity : {type : Number, required: true}
     }],
-    badges : [{ type: mongoose.Schema.Types.ObjectId, ref: 'badge' }],
-    numberOfBadge : Number
+    badges : [{ type: mongoose.Schema.Types.ObjectId, ref: 'badge'}],
+    numberOfBadge : { type: Number, default: 0 }
 });
 
 var playerEvent = mongoose.model('player', playerSchema);

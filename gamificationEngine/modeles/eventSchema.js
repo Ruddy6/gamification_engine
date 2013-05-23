@@ -1,7 +1,7 @@
 var mongoose = require('mongoose');
-require('./typeEventSchema');
 require('./applicationSchema');
-require('./playerSchema');
+
+var playerSchema = require('./playerSchema');
 
 var eventSchema = new mongoose.Schema({
     type: { type: mongoose.Schema.Types.ObjectId, ref: 'typeEvent' },
