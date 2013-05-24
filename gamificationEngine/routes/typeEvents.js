@@ -10,12 +10,25 @@ var applicationModel = mongoose.model('application');
 var eventModel = mongoose.model('event');
 var playerModel = mongoose.model('player');
 
+/**
+ * Permet d'ajouter un type d'event.
+ * Un type d'event est dépendant de la logique de l'application cliente.
+ * Exemple de type d'event : commentaire, vote, ouverture d'un poste etc. dans le cas d'une application type forum.
+ * @param {type} req Les données du type d'event à ajouter.
+ * @param {type} res
+ * @returns Un code 200 si le type d'event a pu être ajouté ou un code erreur 400 si un problème a été rencontré.
+ */
 exports.addTypeEvent = function(req, res) {
     var application_id = req.params.app_id;
+//    var typeEvent = new typeEventModel({
+//        application: application_id,
+//        name: 'frag',
+//        points: 10
+//    });
     var typeEvent = new typeEventModel({
         application: application_id,
-        name: 'frag',
-        points: 10
+        name: req.body.name,
+        points: req.body.points
     });
     typeEvent.save(function(err) {
         if (err) {
@@ -37,6 +50,12 @@ exports.addTypeEvent = function(req, res) {
     });
 };
 
+/**
+ * Permet de récupérer un type d'event spécifique.
+ * @param {type} req L'id du type d'event à récupérer.
+ * @param {type} res
+ * @returns Le type d'event demandé ou un code erreur 400 si un problème a été rencontré.
+ */
 exports.getTypeEventById = function(req, res) {
     var typeEvent_id = req.params.typeEvent_id;
     typeEventModel.findById(typeEvent_id, function(err, typeEvent) {
@@ -49,6 +68,14 @@ exports.getTypeEventById = function(req, res) {
     });
 };
 
+/**
+ * Permet de mettre à jour un type d'event spécifique.
+ * ATTENTION, la mise à jour du nom d'un type d'event entraine une mise à jour de ce dernier 
+ * dans l'application ainsi que dans chaque joueur qui possède un ou plusieurs event de ce type.
+ * @param {type} req L'id du type d'event à mettre à jour ainsi que ses informations.
+ * @param {type} res
+ * @returns Un code 200 si le type d'event a pu être modifié ou un code erreur 400 si un problème a été rencontré.
+ */
 exports.updateTypeEvent = function(req, res) {
     var name = req.body.name;
     var id = req.params.typeEvent_id;
@@ -94,6 +121,14 @@ exports.updateTypeEvent = function(req, res) {
     });
 };
 
+/**
+ * Permet de supprimer un type d'event particulier.
+ * ATTENTION, la suppression d'un type d'event entraine la suppression de tous les events de ce type dans l'application
+ * et pour chaque player qui possède un ou plusieurs event de ce type.
+ * @param {type} req L'id du type d'event à supprimer.
+ * @param {type} res
+ * @returns Un code 200 si le type d'event a pu être supprimé ou un code erreur 400 si un problème a été rencontré.
+ */
 exports.deleteTypeEvent = function(req, res) {
     var id = req.params.typeEvent_id;
     var app_id = req.params.app_id;
@@ -102,13 +137,13 @@ exports.deleteTypeEvent = function(req, res) {
             console.log(err);
             res.send({"code": "400"});
         } else {
-            // récupération de tous les events de ce type
+            // récupération de tous les events de ce type.
             eventModel.find({type: id}, function(err, events) {
                 if (err) {
                     console.log(err);
                     res.send({"code": "400"});
                 } else {
-                    // pour chaque event, modification du player pour lui supprimer ce type d'event dans son tableau de type d'events
+                    // Pour chaque event, modification du player pour lui supprimer ce type d'event dans son tableau de type d'events.
                     var event;
                     for (var i = 0, l = events.length; i < l; i++) {
                         event = events[i];
@@ -121,6 +156,7 @@ exports.deleteTypeEvent = function(req, res) {
                             }
                         });
                     }
+                    // Suppression du type d'event dans l'application.
                     applicationModel.findOneAndUpdate({_id: app_id, 'typeEvents.type': new mongoose.Types.ObjectId(id)}, {$pull: {'typeEvents': {type: new mongoose.Types.ObjectId(id)}}}, function(err) {
                         if (err) {
                             console.log(err);
@@ -131,7 +167,7 @@ exports.deleteTypeEvent = function(req, res) {
                                     console.log(err);
                                     res.send({"code": "400"});
                                 } else {
-                                    // suppression de tous les events de ce type
+                                    // Suppression de tous les events de ce type.
                                     eventModel.remove({type: id}).exec();
                                     res.send({
                                         "code": "200"
