@@ -10,16 +10,18 @@ var playerModel = mongoose.model('player');
  * Il contient la liste des players représentés par leur pseudo et leur nombre de points,
  * classé par ordre de points décroissant.
  * @param {type} req
- * @param {type} res
+ * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
  * @returns Le leaderboard de l'application ou un code erreur 400 si un problème a été rencontré.
  */
 exports.getLeaderboard = function(req, res) {
-    playerModel.aggregate({
-        $project: {
-            pseudo: 1,
-            points: 1
-        }},
-    {$sort: {points: -1}}, function(err, leaderboard) {
+    var app_id = req.params.id;
+    playerModel.aggregate([
+            {$match: {application: new mongoose.Types.ObjectId(app_id)}},
+            {$project: {
+                pseudo: 1,
+                points: 1
+            }},
+        {$sort: {points: -1}}], function(err, leaderboard) {
         if (err) {
             console.log(err);
             res.send({"code": "400"});
