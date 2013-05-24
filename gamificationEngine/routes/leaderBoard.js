@@ -4,6 +4,15 @@ require('./../modeles/playerSchema');
 
 var playerModel = mongoose.model('player');
 
+/**
+ * Permet de créer le leaderboard d'une application.
+ * Le leaderboard est un classement des meilleurs player d'une application.
+ * Il contient la liste des players représentés par leur pseudo et leur nombre de points,
+ * classé par ordre de points décroissant.
+ * @param {type} req
+ * @param {type} res
+ * @returns Le leaderboard de l'application ou un code erreur 400 si un problème a été rencontré.
+ */
 exports.getLeaderboard = function(req, res) {
     playerModel.aggregate({
         $project: {
