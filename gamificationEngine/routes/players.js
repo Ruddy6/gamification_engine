@@ -13,7 +13,7 @@ var eventModel = mongoose.model('event');
 /**
  * Permet d'ajouter un nouveau player dans la base de données.
  * @param {type} req Les données du player à ajouter.
- * @param {type} res
+ * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
  * @returns Un code 200 si le player a pu être ajouté ou un code erreur 400 si un problème a été rencontré.
  */
 exports.addPlayer = function(req, res) {
@@ -62,7 +62,7 @@ exports.addPlayer = function(req, res) {
  * Le player retourné est constitué de son prénom, nom, pseudo, email, points, 
  * le tableau récapitulatif de ses events (nom et nombre d'event par type) ainsi que le nombre de badge qu'il possède.
  * @param {type} req L'id du player que l'on veut récupérer.
- * @param {type} res
+ * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
  * @returns Le player désiré ou un code erreur 400 si un problème a été rencontré.
  */
 exports.getPlayer = function(req, res) {
@@ -87,7 +87,7 @@ exports.getPlayer = function(req, res) {
  * @param {type} badge_id L'id du badge à ajouter.
  * @param {type} player_id L'id du player concerné.
  * @returns Un code erreur 400 si un problème a été rencontré.
-*/
+ */
 exports.addBadgeToPlayer = function(badge_id, player_id) {
     badgeModel.findOneAndUpdate({_id: badge_id}, {$addToSet: {players: player_id}, $inc: {numberOfOwner: 1}}, function(err, badge) {
         if (err) {
@@ -113,7 +113,7 @@ exports.addBadgeToPlayer = function(badge_id, player_id) {
  * Permet de récupérer la liste des badges d'un player.
  * Chaque badge de cette liste est composé de son nom, de sa description, de son image et de son nombre de points.
  * @param {type} req L'id du player dont on veut récupérer la liste de badges.
- * @param {type} res
+ * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
  * @returns La liste des badges du player ou un code erreur 400 si un problème a été rencontré.
  */
 exports.getBadges = function(req, res) {
@@ -147,9 +147,9 @@ exports.getBadges = function(req, res) {
  * Permet de récupérer la liste des events d'un player.
  * Chaque event de cette liste est composé de son type et de la date et heure à laquelle il a été ajouté, trié par date décroissante.
  * @param {type} req L'id du player dont on veut récupérer la liste des events.
- * @param {type} res
+ * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
  * @returns La liste des events du player ou un code erreur 400 si un problème a été rencontré.
-*/
+ */
 exports.getEvents = function(req, res) {
     var player_id = req.params.player_id;
     playerModel.findById(player_id, function(err, player) {
@@ -179,14 +179,20 @@ exports.getEvents = function(req, res) {
 
 /**
  * Permet de mettre à jour un player.
- * @param {type} req L'id du player à mettre à jour.
- * @param {type} res
+ * Seul son firstname, lastname, pseudo, email et points sont modifiables.
+ * @param {type} req Les données du player à mettre à jour.
+ * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
  * @returns Un code 200 si le player a pu être ajouté ou un code erreur 400 si un problème a été rencontré.
-*/
+ */
 exports.updatePlayer = function(req, res) {
     var id = req.params.player_id;
+    var firstname = req.body.firstname;
+    var lastname = req.body.lastname;
+    var pseudo = req.body.pseudo;
+    var email = req.body.email;
+    var points = req.body.points;
 
-    playerModel.findByIdAndUpdate(id, {$set: {points: 150}}, function(err, event) {
+    playerModel.findByIdAndUpdate(id, {$set: {firstname: firstname, lastname: lastname, pseudo: pseudo, email: email, points: points}}, function(err, event) {
         if (err) {
             console.log(err);
             res.send({"code": "400"});
@@ -202,7 +208,7 @@ exports.updatePlayer = function(req, res) {
  * Permet de supprimer un player.
  * ATTENTION, la suppression d'un player entraine la suppression de tous ses events!
  * @param {type} req L'id du player à supprimer.
- * @param {type} res
+ * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
  * @returns Un code 200 si le player a pu être supprimé ou un code erreur 400 si un problème a été rencontré.
  */
 exports.deletePlayer = function(req, res) {

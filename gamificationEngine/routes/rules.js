@@ -14,7 +14,7 @@ var badgeModel = mongoose.model('badge');
  * Chaque règle permet l'obtention d'un et un seul badge.
  * Exemple : 5 event de type "Commentaire" permet d'obtenir le badge "Pipelette".
  * @param {type} req Les données de la règles à ajouter.
- * @param {type} res
+ * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
  * @returns Un code 200 si la règle a pu être ajouté ou un code erreur 400 si un problème a été rencontré.
  */
 exports.addRule = function(req, res) {
@@ -56,7 +56,7 @@ exports.addRule = function(req, res) {
 /**
  * Permet de récupérer la liste de toutes les règles liées à une application.
  * @param {type} req L'id de l'application dont on veut récupérer les règles.
- * @param {type} res
+ * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
  * @returns La liste des règles ou un code erreur 400 si un problème a été rencontré.
  */
 exports.getRules = function(req, res) {
@@ -74,7 +74,7 @@ exports.getRules = function(req, res) {
 /**
  * Permet de récupérer une règle particulière en fonction de son id.
  * @param {type} req L'id de la règle que l'on veut récupérer.
- * @param {type} res
+ * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
  * @returns La règle désirée ou un code erreur 400 si un problème a été rencontré.
  */
 exports.getRuleById = function(req, res) {
@@ -113,14 +113,19 @@ exports.checkRules = function(nbEvent, eventAjoute, playerId) {
 
 /**
  * Permet de modifier une règle.
- * @param {type} req
- * @param {type} res
+ * Seul le type d'event, le nombre d'event et le badge sont modifiables.
+ * @param {type} req Les données de la règle à modifier.
+ * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
  * @returns Un code 200 si la règle a pu être modifiée ou un code erreur 400 si un problème a été rencontré.
  */
 exports.updateRule = function(req, res) {
     var id = req.params.rule_id;
 
-    ruleModel.findByIdAndUpdate(id, {$set: {badge: 1}}, function(err, rule) {
+    var typeEvent = req.body.typeEvent;
+    var nbEvent = req.body.nbEvent;
+    var badge = req.body.badge_id;
+
+    ruleModel.findByIdAndUpdate(id, {$set: {typeEvent: typeEvent, nbEvent: nbEvent, badge: badge}}, function(err, rule) {
         if (err) {
             console.log(err);
             res.send({"code": "400"});
@@ -135,7 +140,7 @@ exports.updateRule = function(req, res) {
 /**
  * Permet de supprimer une règle.
  * @param {type} req L'id de la règle à supprimer.
- * @param {type} res
+ * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
  * @returns Un code 200 si la règle a pu être supprimée ou un code erreur 400 si un problème a été rencontré.
  */
 exports.deleteRule = function(req, res) {

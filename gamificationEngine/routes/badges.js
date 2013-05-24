@@ -17,8 +17,8 @@ var applicationModel = mongoose.model('application');
  * Les données sont envoyées par l'utilisateur dans le corps de la requête POST.
  * 
  * @param {type} req Les données du badge à ajouter.
- * @param {type} res
- * @returns Un code d'erreur 200 si l'opération s'est bien déroulée, 400 sinon.
+ * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
+ * @returns Un code 200 si le badge a pu être ajouté ou un code erreur 400 si un problème a été rencontré.
  */
 exports.addBadge = function(req, res) {
     var application_id = req.params.app_id;
@@ -61,7 +61,7 @@ exports.addBadge = function(req, res) {
  * Les données renvoyées contiennent uniquement son nom, sa description, son image, 
  * son nombre de points, son nombre de possesseur ainsi qu'un tableau contenant les règles permettant de l'obtenir.
  * @param {type} req L'id du badge à récupérer.
- * @param {type} res
+ * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
  * @returns Le badge ou un code erreur 400 si un problème a été rencontré.
  */
 exports.getBadge = function(req, res) {
@@ -82,9 +82,9 @@ exports.getBadge = function(req, res) {
 /**
  * Permet de récuprer la liste de tous les players qui possèdent ce badge.
  * @param {type} req L'id du badge dont on veut récupérer les possesseurs.
- * @param {type} res
+ * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
  * @returns Un tableau de players possesseur de ce badge ou un code erreur 400 si un problème a été rencontré.
-*/
+ */
 exports.getPlayers = function(req, res) {
     var badge_id = req.params.badge_id;
     badgeModel.findById(badge_id, function(err, badge) {
@@ -101,13 +101,18 @@ exports.getPlayers = function(req, res) {
 
 /**
  * Permet de mettre à jour un badge spécifique.
- * @param {type} req
- * @param {type} res
+ * Seuls les éléments nom, description, picture et points sont modifiables.
+ * @param {type} req Les données du badge à modifier.
+ * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
  * @returns Un code 200 si le badge a pu être mis à jour ou un code erreur 400 si un problème a été rencontré.
  */
 exports.updateBadge = function(req, res) {
     var id = req.params.badge_id;
-    badgeModel.findByIdAndUpdate(id, {$set: {name: 'Un badge à jour'}}, function(err, badge) {
+    var name = req.body.name;
+    var description = req.body.description;
+    var picture = req.body.picture;
+    var points = req.body.points;
+    badgeModel.findByIdAndUpdate(id, {$set: {name: name, description: description, picture: picture, points: points}}, function(err, badge) {
         if (err) {
             console.log(err);
             res.send({"code": "400"});
@@ -123,7 +128,7 @@ exports.updateBadge = function(req, res) {
  * Permet de supprimer un badge.
  * ATTENTION, la suppression d'un badge entrainera également sa suppression dans chaque player qui le possède ainsi que dans l'application.
  * @param {type} req L'id du badge à supprimer.
- * @param {type} res
+ * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
  * @returns Un code 200 si le badge a pu être mis à jour ou un code erreur 400 si un problème a été rencontré.
  */
 exports.deleteBadge = function(req, res) {

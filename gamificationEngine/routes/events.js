@@ -17,7 +17,7 @@ var typeEventModel = mongoose.model('typeEvent');
  * ATTENTION, l'ajout d'un event déclanche la vérification des règles liés à son type 
  * et permet, le cas échéant, l'obtention d'un badge pour le player concerné.
  * @param {type} req Les données de l'event à ajouter.
- * @param {type} res
+ * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
  * @returns Un code 200 si l'event a pu être ajouté ou un code erreur 400 si un problème a été rencontré.
  */
 exports.addEvent = function(req, res) {
@@ -98,7 +98,7 @@ exports.addEvent = function(req, res) {
 /**
  * Permet de récupérer un event spécifique via son id.
  * @param {type} req L'id de l'event à récupérer.
- * @param {type} res
+ * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
  * @returns L'event désiré ou un code erreur 400 si un problème a été rencontré.
  */
 exports.getEventById = function(req, res) {
@@ -116,7 +116,7 @@ exports.getEventById = function(req, res) {
 /**
  * Permet de récupérer le player qui a effectué un event spécifique.
  * @param {type} req L'id de l'event dont on veut connaître l'auteur.
- * @param {type} res
+ * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
  * @returns Le player auteur de l'event ou un code erreur 400 si un problème a été rencontré.
  */
 exports.getPlayer = function(req, res) {
@@ -151,7 +151,7 @@ exports.getPlayer = function(req, res) {
 /**
  * Permet de supprimer un event spécifique.
  * @param {type} req L'id de l'event que l'on veut supprimer.
- * @param {type} res
+ * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
  * @returns Un code 200 si l'event a pu être supprimé ou un code erreur 400 si un problème a été rencontré.
  */
 exports.deleteEvent = function(req, res) {

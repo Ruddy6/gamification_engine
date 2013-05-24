@@ -15,7 +15,7 @@ var playerModel = mongoose.model('player');
  * Un type d'event est dépendant de la logique de l'application cliente.
  * Exemple de type d'event : commentaire, vote, ouverture d'un poste etc. dans le cas d'une application type forum.
  * @param {type} req Les données du type d'event à ajouter.
- * @param {type} res
+ * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
  * @returns Un code 200 si le type d'event a pu être ajouté ou un code erreur 400 si un problème a été rencontré.
  */
 exports.addTypeEvent = function(req, res) {
@@ -53,7 +53,7 @@ exports.addTypeEvent = function(req, res) {
 /**
  * Permet de récupérer un type d'event spécifique.
  * @param {type} req L'id du type d'event à récupérer.
- * @param {type} res
+ * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
  * @returns Le type d'event demandé ou un code erreur 400 si un problème a été rencontré.
  */
 exports.getTypeEventById = function(req, res) {
@@ -73,14 +73,15 @@ exports.getTypeEventById = function(req, res) {
  * ATTENTION, la mise à jour du nom d'un type d'event entraine une mise à jour de ce dernier 
  * dans l'application ainsi que dans chaque joueur qui possède un ou plusieurs event de ce type.
  * @param {type} req L'id du type d'event à mettre à jour ainsi que ses informations.
- * @param {type} res
+ * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
  * @returns Un code 200 si le type d'event a pu être modifié ou un code erreur 400 si un problème a été rencontré.
  */
 exports.updateTypeEvent = function(req, res) {
-    var name = req.body.name;
     var id = req.params.typeEvent_id;
+    var name = req.body.name;
+    var points = req.body.points;
 
-    typeEventModel.findByIdAndUpdate(id, {$set: {name: 'mise à jour'}}, function(err, typeEvent) {
+    typeEventModel.findByIdAndUpdate(id, {$set: {name: name, points: points}}, function(err, typeEvent) {
         if (err) {
             console.log(err);
             res.send({"code": "400"});
@@ -126,7 +127,7 @@ exports.updateTypeEvent = function(req, res) {
  * ATTENTION, la suppression d'un type d'event entraine la suppression de tous les events de ce type dans l'application
  * et pour chaque player qui possède un ou plusieurs event de ce type.
  * @param {type} req L'id du type d'event à supprimer.
- * @param {type} res
+ * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
  * @returns Un code 200 si le type d'event a pu être supprimé ou un code erreur 400 si un problème a été rencontré.
  */
 exports.deleteTypeEvent = function(req, res) {
