@@ -19,8 +19,9 @@ var badgeModel = mongoose.model('badge');
  */
 exports.addRule = function(req, res) {
     var application_id = req.params.app_id;
-    var badge_id = req.params.badge_id;
-    var typeEvent = req.params.typeEvent;
+    var badge_id = req.body.badge_id;
+    var typeEvent = req.body.typeEvent;
+    var nbEvent = req.body.nbEvent;
 //    var rule = new ruleModel({
 //        application: application_id,
 //        typeEvent: typeEvent,
@@ -29,9 +30,9 @@ exports.addRule = function(req, res) {
 //    });
     var rule = new ruleModel({
         application: application_id,
-        typeEvent: req.body.typeEvent,
-        nbEvent: req.body.nbEvent,
-        badge: req.body.badge_id
+        typeEvent: typeEvent,
+        nbEvent: nbEvent,
+        badge: badge_id
     });
     rule.save(function(err) {
         if (err) {
@@ -49,24 +50,6 @@ exports.addRule = function(req, res) {
                     });
                 }
             });
-        }
-    });
-};
-
-/**
- * Permet de récupérer la liste de toutes les règles liées à une application.
- * @param {type} req L'id de l'application dont on veut récupérer les règles.
- * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
- * @returns La liste des règles ou un code erreur 400 si un problème a été rencontré.
- */
-exports.getRules = function(req, res) {
-    var application_id = req.params.app_id;
-    ruleModel.find({application: application_id}, function(err, rules) {
-        if (err) {
-            console.log(err);
-            res.send({"code": "400"});
-        } else {
-            res.send(rules);
         }
     });
 };

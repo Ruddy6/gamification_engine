@@ -22,8 +22,8 @@ var typeEventModel = mongoose.model('typeEvent');
  */
 exports.addEvent = function(req, res) {
     var application_id = req.params.app_id;
-    var player_id = req.params.player_id;
-    var typeEvent_id = req.params.typeEvent_id;
+    var player_id = req.body.player_id;
+    var typeEvent_id = req.body.typeEvent_id;
 
 //    var event = new eventModel({
 //        type: typeEvent_id,
@@ -32,9 +32,9 @@ exports.addEvent = function(req, res) {
 //    });
     
     var event = new eventModel({
-        type: req.body.typeEvent_id,
+        type: typeEvent_id,
         application: application_id,
-        player: req.body.player_id
+        player: player_id
     });
 
     event.save(function(err) {
@@ -115,6 +115,8 @@ exports.getEventById = function(req, res) {
 
 /**
  * Permet de récupérer le player qui a effectué un event spécifique.
+ * Le player est représenté par son id, son pseudo, son nombre de points et son nombre de badge.
+ * Les informations sont retournées dans l'ordre alphabétique croissant du pseudo.
  * @param {type} req L'id de l'event dont on veut connaître l'auteur.
  * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
  * @returns Le player auteur de l'event ou un code erreur 400 si un problème a été rencontré.
@@ -126,7 +128,12 @@ exports.getPlayer = function(req, res) {
             console.log(err);
             res.send({"code": "400"});
         } else {
-            playerModel.findById(event.player, function(err, player) {
+            console.log(event.player);
+            playerModel.aggregate([
+                {$match: {_id: event.player}}
+                , {$project: {_id: 1, pseudo: 1, points: 1, numberOfBadge: 1}}
+                , {$sort: {pseudo: 1}}
+            ], function(err, player) {
                 res.send(player);
             });
         }

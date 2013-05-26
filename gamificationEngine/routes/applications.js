@@ -81,7 +81,7 @@ exports.getApplication = function(req, res) {
     var application_id = req.params.id;
     applicationModel.aggregate([
         {$match: {_id: new mongoose.Types.ObjectId(application_id)}}
-        , {$project: {name: 1, description: 1, userKey: 1, adminKey: 1, numberOfBadge: 1, numberOfPlayer: 1, typeEvents: 1}}
+        , {$project: {_id: 1, name: 1, description: 1, userKey: 1, adminKey: 1, numberOfBadge: 1, numberOfPlayer: 1, typeEvents: 1}}
     ], function(err, application) {
         if (err) {
             console.log(err);
@@ -94,7 +94,7 @@ exports.getApplication = function(req, res) {
 
 /**
  * Permet de récupérer tous les players d'une application.
- * Chaque player est représenté par son pseudo, son nombre de points et son nombre de badge.
+ * Chaque player est représenté par son id, son pseudo, son nombre de points et son nombre de badge.
  * Les informations sont retournées dans l'ordre alphabétique croissant du pseudo.
  * @param {type} req L'id de l'application dont on veut récupérer les players.
  * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
@@ -104,7 +104,7 @@ exports.getPlayers = function(req, res) {
     var application_id = req.params.id;
     playerModel.aggregate([
         {$match: {application: new mongoose.Types.ObjectId(application_id)}}
-        , {$project: {pseudo: 1, points: 1, numberOfBadge: 1}}
+        , {$project: {_id: 1, pseudo: 1, points: 1, numberOfBadge: 1}}
         , {$sort: {pseudo: 1}}
     ], function(err, player) {
         if (err) {
@@ -118,7 +118,7 @@ exports.getPlayers = function(req, res) {
 
 /**
  * Permet de récupérer tous les badges liés à une application.
- * Chaque badge est représenté par son nom, sa description, sa photo et son nombre de points.
+ * Chaque badge est représenté par son id, son nom, sa description, sa photo et son nombre de points.
  * Les informations sont retournées par nombre de point croissant.
  * @param {type} req L'id de l'application dont on veut récupérer les badges.
  * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
@@ -135,7 +135,7 @@ exports.getBadges = function(req, res) {
         } else {
             badgeModel.aggregate([
                 {$match: {_id: {$in: application.badges}}}
-                , {$project: {name: 1, description: 1, picture: 1, points: 1}}
+                , {$project: {_id: 1, name: 1, description: 1, picture: 1, points: 1}}
                 , {$sort: {points: -1}}
             ], function(err, badges) {
                 if (err) {
@@ -147,6 +147,24 @@ exports.getBadges = function(req, res) {
                     res.send(badges);
                 }
             });
+        }
+    });
+};
+
+/**
+ * Permet de récupérer la liste de toutes les règles liées à une application.
+ * @param {type} req L'id de l'application dont on veut récupérer les règles.
+ * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
+ * @returns La liste des règles ou un code erreur 400 si un problème a été rencontré.
+ */
+exports.getRules = function(req, res) {
+    var application_id = req.params.app_id;
+    ruleModel.find({application: application_id}, function(err, rules) {
+        if (err) {
+            console.log(err);
+            res.send({"code": "400"});
+        } else {
+            res.send(rules);
         }
     });
 };

@@ -11,7 +11,7 @@ var badgeSchema = new mongoose.Schema({
     application : { type: mongoose.Schema.Types.ObjectId, ref: 'application' },
     players : [{ type: mongoose.Schema.Types.ObjectId, ref: 'player' }],
     numberOfOwner : {type: Number, default : 0},
-    rules : [ruleSchema]
+    rules : [{ type: mongoose.Schema.Types.ObjectId, ref: 'rule' }]
 });
 
 var modeleBadge = mongoose.model('badge', badgeSchema);

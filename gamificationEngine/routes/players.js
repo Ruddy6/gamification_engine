@@ -111,7 +111,7 @@ exports.addBadgeToPlayer = function(badge_id, player_id) {
 
 /**
  * Permet de récupérer la liste des badges d'un player.
- * Chaque badge de cette liste est composé de son nom, de sa description, de son image et de son nombre de points.
+ * Chaque badge de cette liste est composé de son id, de son nom, de sa description, de son image et de son nombre de points.
  * @param {type} req L'id du player dont on veut récupérer la liste de badges.
  * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
  * @returns La liste des badges du player ou un code erreur 400 si un problème a été rencontré.
@@ -127,7 +127,7 @@ exports.getBadges = function(req, res) {
         } else {
             badgeModel.aggregate([
                 {$match: {_id: {$in: player.badges}}}
-                , {$project: {name: 1, description: 1, picture: 1, points: 1}}
+                , {$project: {_id: 1, name: 1, description: 1, picture: 1, points: 1}}
                 , {$sort: {points: -1}}
             ], function(err, badges) {
                 if (err) {
@@ -161,7 +161,7 @@ exports.getEvents = function(req, res) {
         } else {
             eventModel.aggregate([
                 {$match: {player: player._id}}
-                , {$project: {type: 1, timestamp: 1}}
+                , {$project: {_id: 1, type: 1, timestamp: 1}}
                 , {$sort: {timestamp: -1}}
             ], function(err, events) {
                 if (err) {

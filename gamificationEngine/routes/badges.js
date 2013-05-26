@@ -68,7 +68,7 @@ exports.getBadge = function(req, res) {
     var badge_id = req.params.badge_id;
     badgeModel.aggregate([
         {$match: {_id: new mongoose.Types.ObjectId(badge_id)}}
-        , {$project: {name: 1, description: 1, picture: 1, points: 1, numberOfOwner: 1, rules: 1}}
+        , {$project: {_id: 1, name: 1, description: 1, picture: 1, points: 1, numberOfOwner: 1, rules: 1}}
     ], function(err, badge) {
         if (err) {
             console.log(err);
@@ -81,6 +81,8 @@ exports.getBadge = function(req, res) {
 
 /**
  * Permet de récuprer la liste de tous les players qui possèdent ce badge.
+ * Chaque player est représenté par son id, son pseudo, son nombre de points et son nombre de badge.
+ * Les informations sont retournées dans l'ordre alphabétique croissant du pseudo.
  * @param {type} req L'id du badge dont on veut récupérer les possesseurs.
  * @param {type} res Objet permettant de renvoyer une réponse au navigateur.
  * @returns Un tableau de players possesseur de ce badge ou un code erreur 400 si un problème a été rencontré.
@@ -92,7 +94,11 @@ exports.getPlayers = function(req, res) {
             console.log(err);
             res.send({"code": "400"});
         } else {
-            playerModel.find({_id: {$in: badge.players}}, function(err, players) {
+            playerModel.aggregate([
+                {$match: {_id: {$in: badge.players}}}
+                , {$project: {_id: 1, pseudo: 1, points: 1, numberOfBadge: 1}}
+                , {$sort: {pseudo: 1}}
+            ], function(err, players) {
                 res.send(players);
             });
         }

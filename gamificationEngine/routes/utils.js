@@ -37,7 +37,7 @@ initVariables = function() {
     nbPlayer = 10;
     nbBadge = 10;
     nbTypeEvent = 10;
-    eventParPlayer = 100;
+    eventParPlayer = 100000;
     
     compteurPlayer = 0;
     compteurBadge = 0;
@@ -52,7 +52,7 @@ initVariables = function() {
 };
 
 exports.populateDb = function(req, res) {
-    req.connection.setTimeout(30 * 60 * 1000);
+    req.connection.setTimeout(120 * 60 * 1000);
     result = res;
     initVariables();
     var uneApplication = new applicationModel({name: 'gamificationEngine'});
