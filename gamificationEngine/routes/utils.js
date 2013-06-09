@@ -37,7 +37,7 @@ initVariables = function() {
     nbPlayer = 10;
     nbBadge = 10;
     nbTypeEvent = 10;
-    eventParPlayer = 100000;
+    eventParPlayer = 100;
     
     compteurPlayer = 0;
     compteurBadge = 0;

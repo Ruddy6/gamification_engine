@@ -69,7 +69,7 @@ exports.getPlayer = function(req, res) {
     var player_id = req.params.player_id;
     playerModel.aggregate([
         {$match: {_id: new mongoose.Types.ObjectId(player_id)}}
-        , {$project: {firstname: 1, lastname: 1, pseudo: 1, email: 1, points: 1, events: 1, numberOfBadge: 1}}
+        , {$project: {firstname: 1, lastname: 1, pseudo: 1, email: 1, points: 1, events: 1, numberOfBadge: 1, badges: 1}}
     ], function(err, player) {
         if (err) {
             console.log(err);
